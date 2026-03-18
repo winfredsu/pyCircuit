@@ -691,6 +691,8 @@ def _render_tb_cpp(iface: _TopIface, t: Tb, *, trace_plan: TracePlan | None = No
     dw_specs: list[tuple[str, str, int, int, int, int,
                          list[list[tuple[str, int | bool, str, int]]],
                          list[tuple[str, int | bool, str, int]]]] = []
+    # Lines emitted before the main for-loop (struct/table declarations).
+    pre_loop_lines: list[str] = []
     if t.drive_whens:
         lines.append("\n  // Conditional drive state (drive_when).\n")
         for dw in t.drive_whens:
@@ -781,21 +783,79 @@ def _render_tb_cpp(iface: _TopIface, t: Tb, *, trace_plan: TracePlan | None = No
                 for dsn, val, dty, dw_ in drive_seq[0]:
                     lines.append(f"        dut.{dsn} = {wire_literal(val, dw_)};\n")
             else:
-                # Per-firing values — use switch(count)
-                lines.append(f"        switch (dw_{tag}_count) {{\n")
-                for idx, firing_ports in enumerate(drive_seq):
-                    lines.append(f"        case {idx}:\n")
-                    for dsn, val, dty, dw_ in firing_ports:
-                        lines.append(f"          dut.{dsn} = {wire_literal(val, dw_)};\n")
-                    lines.append(f"          break;\n")
-                lines.append(f"        default: break;\n")
-                lines.append(f"        }}\n")
+                # ── Scheme A: array-based codegen for per-firing sequences ──
+                # Identify constant ports (same value across all firings) vs varying ports.
+                port_names_ordered = [dsn for dsn, _, _, _ in drive_seq[0]]
+                port_widths = {dsn: dw_ for dsn, _, _, dw_ in drive_seq[0]}
+
+                # Build per-port value lists
+                port_values: dict[str, list[int]] = {pn: [] for pn in port_names_ordered}
+                for firing_ports in drive_seq:
+                    for dsn, val, _dty, dw_ in firing_ports:
+                        port_values[dsn].append(mask_value(val, dw_))
+
+                constant_ports: dict[str, int] = {}  # port -> constant value
+                varying_ports: list[str] = []  # ports that change across firings
+                for pn in port_names_ordered:
+                    vals = port_values[pn]
+                    if all(v == vals[0] for v in vals):
+                        constant_ports[pn] = vals[0]
+                    else:
+                        varying_ports.append(pn)
+
+                if not varying_ports:
+                    # All ports constant — treat as uniform (shouldn't happen, but safe)
+                    for dsn, val, dty, dw_ in drive_seq[0]:
+                        lines.append(f"        dut.{dsn} = {wire_literal(val, dw_)};\n")
+                else:
+                    # Emit struct + const array BEFORE the for-loop
+                    struct_name = f"DW_{tag}_Entry"
+                    table_name = f"dw_{tag}_table"
+
+                    pre_loop_lines.append(f"\n  // Array-based drive data for drive_when '{tag}' ({rp} firings).\n")
+                    pre_loop_lines.append(f"  struct {struct_name} {{\n")
+                    for vp in varying_ports:
+                        pre_loop_lines.append(f"    std::uint64_t {vp};\n")
+                    pre_loop_lines.append(f"  }};\n")
+
+                    pre_loop_lines.append(f"  static const {struct_name} {table_name}[{rp}] = {{\n")
+                    for fi in range(rp):
+                        vals_str = ", ".join(
+                            f"0x{port_values[vp][fi]:x}ull" for vp in varying_ports
+                        )
+                        pre_loop_lines.append(f"    {{{vals_str}}},\n")
+                    pre_loop_lines.append(f"  }};\n")
+
+                    # Emit constant port assignments inline
+                    for pn, cv_val in constant_ports.items():
+                        w = port_widths[pn]
+                        lines.append(f"        dut.{pn} = {wire_literal(cv_val, w)};\n")
+
+                    # Emit varying port assignments from table lookup
+                    lines.append(f"        {{\n")
+                    lines.append(f"          const auto& __dw_e = {table_name}[dw_{tag}_count];\n")
+                    for vp in varying_ports:
+                        w = port_widths[vp]
+                        lines.append(f"          dut.{vp} = pyc::cpp::Wire<{w}>({{__dw_e.{vp}}});\n")
+                    lines.append(f"        }}\n")
 
             lines.append(f"        dw_{tag}_count++;\n")
             if on_done_ports:
                 lines.append(f"        dw_{tag}_fired_prev = true;\n")
             lines.append(f"      }}\n")
             lines.append(f"    }}\n")
+
+    # Insert pre-loop declarations (struct/table) before the for-loop.
+    if pre_loop_lines:
+        # Find the for-loop start and insert before it.
+        for_idx = None
+        for i, ln in enumerate(lines):
+            if "for (std::uint64_t cyc = 0;" in ln:
+                for_idx = i
+                break
+        if for_idx is not None:
+            for j, pl in enumerate(pre_loop_lines):
+                lines.insert(for_idx + j, pl)
 
 
     if expects_pre_by:
