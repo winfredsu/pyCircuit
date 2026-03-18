@@ -142,6 +142,28 @@ class Drive:
 
 
 @dataclass(frozen=True)
+class DriveWhen:
+    """Conditional drive: apply assignments when condition_port == condition_value.
+
+    Each DriveWhen has a unique `tag` (string identifier). The generated
+    testbench maintains boolean state per tag:
+      - The tag becomes *armed* at cycle `start`.
+      - Each cycle while armed, if the condition port equals condition_value,
+        the payload drives are applied, the tag is *disarmed*, and `on_done`
+        drives (if any) are applied on the next cycle.
+      - If `repeat` > 1, the tag re-arms after each firing until `repeat`
+        firings have occurred.
+    """
+    tag: str
+    condition_port: str
+    condition_value: int | bool
+    drives: tuple[tuple[str, int | bool], ...]
+    start: int = 0
+    repeat: int = 1
+    on_done: tuple[tuple[str, int | bool], ...] = ()
+
+
+@dataclass(frozen=True)
 class Expect:
     port: str
     value: int | bool
@@ -187,6 +209,7 @@ class Tb:
     clocks: list[ClockSpec] = field(default_factory=list)
     reset_spec: ResetSpec | None = None
     drives: list[Drive] = field(default_factory=list)
+    drive_whens: list[DriveWhen] = field(default_factory=list)
     expects: list[Expect] = field(default_factory=list)
     sva_asserts: list[SvaAssert] = field(default_factory=list)
     random_streams: list[RandomStream] = field(default_factory=list)
@@ -224,6 +247,51 @@ class Tb:
         if not isinstance(value, (bool, int)):
             raise TbError("drive value must be bool or int")
         self.drives.append(Drive(port=p, value=value, at=cyc))
+
+    def drive_when(
+        self,
+        condition_port: str,
+        condition_value: int | bool,
+        drives: dict[str, int | bool],
+        *,
+        tag: str,
+        start: int = 0,
+        repeat: int = 1,
+        on_done: dict[str, int | bool] | None = None,
+    ) -> None:
+        """Register a conditional drive that fires when condition is met.
+
+        Args:
+            condition_port: Output port to monitor (e.g. 'pkt_in_rdy').
+            condition_value: Value that triggers firing (e.g. 1).
+            drives: Dict of {port: value} to apply when condition is met.
+            tag: Unique identifier for this conditional drive.
+            start: Earliest cycle to start checking the condition.
+            repeat: Number of times to fire before becoming permanently disarmed.
+            on_done: Optional dict of {port: value} to apply one cycle after firing.
+        """
+        cp = str(condition_port).strip()
+        if not cp:
+            raise TbError("drive_when condition_port must be non-empty")
+        tg = str(tag).strip()
+        if not tg:
+            raise TbError("drive_when tag must be non-empty")
+        if not isinstance(condition_value, (bool, int)):
+            raise TbError("drive_when condition_value must be bool or int")
+        if not drives:
+            raise TbError("drive_when drives must be non-empty")
+        rp = int(repeat)
+        if rp < 1:
+            raise TbError("drive_when repeat must be >= 1")
+        st = int(start)
+        if st < 0:
+            raise TbError("drive_when start must be >= 0")
+        d = tuple((str(k).strip(), v) for k, v in drives.items())
+        od = tuple((str(k).strip(), v) for k, v in (on_done or {}).items())
+        self.drive_whens.append(DriveWhen(
+            tag=tg, condition_port=cp, condition_value=condition_value,
+            drives=d, start=st, repeat=rp, on_done=od,
+        ))
 
     def expect(
         self,

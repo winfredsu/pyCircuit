@@ -686,6 +686,43 @@ def _render_tb_cpp(iface: _TopIface, t: Tb, *, trace_plan: TracePlan | None = No
 
     lines.append(f"  const std::uint64_t timeout_cycles = {int(t.timeout_cycles)}ull;\n")
     lines.append("  bool ok = false;\n")
+
+    # DriveWhen state declarations
+    dw_specs: list[tuple[str, str, int, int, int, int,
+                         list[tuple[str, int | bool, str, int]],
+                         list[tuple[str, int | bool, str, int]]]] = []
+    if t.drive_whens:
+        lines.append("\n  // Conditional drive state (drive_when).\n")
+        for dw in t.drive_whens:
+            tag = _sanitize_id(dw.tag)
+            cdir, csn, cty = iface.resolve(dw.condition_port)
+            cw = _as_int_width(cty)
+            if cw > 64:
+                raise SystemExit(f"drive_when condition port wider than 64 bits not supported: {dw.condition_port}")
+            cv = mask_value(dw.condition_value, cw)
+            st = int(dw.start)
+            rp = int(dw.repeat)
+
+            drive_ports = []
+            for port, val in dw.drives:
+                ddir, dsn, dty = iface.resolve(port)
+                if ddir != "in":
+                    raise SystemExit(f"drive_when drives require input port, got output: {port!r}")
+                dw_ = _as_int_width(dty)
+                drive_ports.append((dsn, val, dty, dw_))
+
+            on_done_ports = []
+            for port, val in dw.on_done:
+                ddir, dsn, dty = iface.resolve(port)
+                if ddir != "in":
+                    raise SystemExit(f"drive_when on_done requires input port, got output: {port!r}")
+                dw_ = _as_int_width(dty)
+                on_done_ports.append((dsn, val, dty, dw_))
+
+            lines.append(f"  uint64_t dw_{tag}_count = 0;\n")
+            lines.append(f"  bool dw_{tag}_fired_prev = false;\n")
+            dw_specs.append((tag, csn, cw, cv, st, rp, drive_ports, on_done_ports))
+
     lines.append("  for (std::uint64_t cyc = 0; cyc < timeout_cycles; ++cyc) {\n")
 
     if rand_specs:
@@ -710,6 +747,33 @@ def _render_tb_cpp(iface: _TopIface, t: Tb, *, trace_plan: TracePlan | None = No
             lines.append("      break;\n")
         lines.append("    default: break;\n")
         lines.append("    }\n")
+
+    # DriveWhen conditional logic (after static drives, before step)
+    if dw_specs:
+        lines.append("\n    // Conditional drives (drive_when) — check after static drives.\n")
+        for tag, csn, cw, cv, st, rp, drive_ports, on_done_ports in dw_specs:
+            # on_done: apply cleanup drives if fired last cycle
+            if on_done_ports:
+                lines.append(f"    if (dw_{tag}_fired_prev) {{\n")
+                for dsn, val, dty, dw_ in on_done_ports:
+                    lines.append(f"      dut.{dsn} = {wire_literal(val, dw_)};\n")
+                lines.append(f"      dw_{tag}_fired_prev = false;\n")
+                lines.append(f"    }}\n")
+
+            # Check condition and fire
+            lines.append(f"    if (cyc >= {st}ull && dw_{tag}_count < {rp}ull) {{\n")
+            if cw == 1:
+                lines.append(f"      if (dut.{csn}.value() == {cv}u) {{\n")
+            else:
+                lines.append(f"      if (dut.{csn}.value() == {cv}ull) {{\n")
+            for dsn, val, dty, dw_ in drive_ports:
+                lines.append(f"        dut.{dsn} = {wire_literal(val, dw_)};\n")
+            lines.append(f"        dw_{tag}_count++;\n")
+            if on_done_ports:
+                lines.append(f"        dw_{tag}_fired_prev = true;\n")
+            lines.append(f"      }}\n")
+            lines.append(f"    }}\n")
+
 
     if expects_pre_by:
         # In the generated C++ TB, combinational logic only updates when we call
