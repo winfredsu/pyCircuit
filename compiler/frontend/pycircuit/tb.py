@@ -146,18 +146,19 @@ class DriveWhen:
     """Conditional drive: apply assignments when condition_port == condition_value.
 
     Each DriveWhen has a unique `tag` (string identifier). The generated
-    testbench maintains boolean state per tag:
+    testbench maintains state per tag:
       - The tag becomes *armed* at cycle `start`.
       - Each cycle while armed, if the condition port equals condition_value,
-        the payload drives are applied, the tag is *disarmed*, and `on_done`
-        drives (if any) are applied on the next cycle.
-      - If `repeat` > 1, the tag re-arms after each firing until `repeat`
-        firings have occurred.
+        the drives for the current firing index are applied and the counter
+        increments.
+      - If `on_done` is provided, those drives are applied the cycle AFTER firing.
+      - After `repeat` total firings, the tag is permanently disarmed.
+      - `drives_sequence` allows different port values per firing index.
     """
     tag: str
     condition_port: str
     condition_value: int | bool
-    drives: tuple[tuple[str, int | bool], ...]
+    drives_sequence: tuple[tuple[tuple[str, int | bool], ...], ...]  # per-firing drives
     start: int = 0
     repeat: int = 1
     on_done: tuple[tuple[str, int | bool], ...] = ()
@@ -252,7 +253,7 @@ class Tb:
         self,
         condition_port: str,
         condition_value: int | bool,
-        drives: dict[str, int | bool],
+        drives: dict[str, int | bool] | list[dict[str, int | bool]],
         *,
         tag: str,
         start: int = 0,
@@ -264,7 +265,8 @@ class Tb:
         Args:
             condition_port: Output port to monitor (e.g. 'pkt_in_rdy').
             condition_value: Value that triggers firing (e.g. 1).
-            drives: Dict of {port: value} to apply when condition is met.
+            drives: Dict of {port: value} (same for all firings), or list of
+                    dicts (one per firing — length must equal repeat).
             tag: Unique identifier for this conditional drive.
             start: Earliest cycle to start checking the condition.
             repeat: Number of times to fire before becoming permanently disarmed.
@@ -278,19 +280,33 @@ class Tb:
             raise TbError("drive_when tag must be non-empty")
         if not isinstance(condition_value, (bool, int)):
             raise TbError("drive_when condition_value must be bool or int")
-        if not drives:
-            raise TbError("drive_when drives must be non-empty")
         rp = int(repeat)
         if rp < 1:
             raise TbError("drive_when repeat must be >= 1")
         st = int(start)
         if st < 0:
             raise TbError("drive_when start must be >= 0")
-        d = tuple((str(k).strip(), v) for k, v in drives.items())
+
+        # Normalize drives to a sequence
+        if isinstance(drives, dict):
+            if not drives:
+                raise TbError("drive_when drives must be non-empty")
+            seq = [drives] * rp
+        elif isinstance(drives, list):
+            if len(drives) != rp:
+                raise TbError(f"drive_when drives list length ({len(drives)}) must equal repeat ({rp})")
+            seq = drives
+        else:
+            raise TbError("drive_when drives must be a dict or list of dicts")
+
+        ds = tuple(
+            tuple((str(k).strip(), v) for k, v in d.items())
+            for d in seq
+        )
         od = tuple((str(k).strip(), v) for k, v in (on_done or {}).items())
         self.drive_whens.append(DriveWhen(
             tag=tg, condition_port=cp, condition_value=condition_value,
-            drives=d, start=st, repeat=rp, on_done=od,
+            drives_sequence=ds, start=st, repeat=rp, on_done=od,
         ))
 
     def expect(

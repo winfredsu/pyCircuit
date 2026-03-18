@@ -689,7 +689,7 @@ def _render_tb_cpp(iface: _TopIface, t: Tb, *, trace_plan: TracePlan | None = No
 
     # DriveWhen state declarations
     dw_specs: list[tuple[str, str, int, int, int, int,
-                         list[tuple[str, int | bool, str, int]],
+                         list[list[tuple[str, int | bool, str, int]]],
                          list[tuple[str, int | bool, str, int]]]] = []
     if t.drive_whens:
         lines.append("\n  // Conditional drive state (drive_when).\n")
@@ -703,13 +703,17 @@ def _render_tb_cpp(iface: _TopIface, t: Tb, *, trace_plan: TracePlan | None = No
             st = int(dw.start)
             rp = int(dw.repeat)
 
-            drive_ports = []
-            for port, val in dw.drives:
-                ddir, dsn, dty = iface.resolve(port)
-                if ddir != "in":
-                    raise SystemExit(f"drive_when drives require input port, got output: {port!r}")
-                dw_ = _as_int_width(dty)
-                drive_ports.append((dsn, val, dty, dw_))
+            # Resolve each firing's port set
+            drive_seq: list[list[tuple[str, int | bool, str, int]]] = []
+            for firing_drives in dw.drives_sequence:
+                firing_ports = []
+                for port, val in firing_drives:
+                    ddir, dsn, dty = iface.resolve(port)
+                    if ddir != "in":
+                        raise SystemExit(f"drive_when drives require input port, got output: {port!r}")
+                    dw_ = _as_int_width(dty)
+                    firing_ports.append((dsn, val, dty, dw_))
+                drive_seq.append(firing_ports)
 
             on_done_ports = []
             for port, val in dw.on_done:
@@ -721,7 +725,7 @@ def _render_tb_cpp(iface: _TopIface, t: Tb, *, trace_plan: TracePlan | None = No
 
             lines.append(f"  uint64_t dw_{tag}_count = 0;\n")
             lines.append(f"  bool dw_{tag}_fired_prev = false;\n")
-            dw_specs.append((tag, csn, cw, cv, st, rp, drive_ports, on_done_ports))
+            dw_specs.append((tag, csn, cw, cv, st, rp, drive_seq, on_done_ports))
 
     lines.append("  for (std::uint64_t cyc = 0; cyc < timeout_cycles; ++cyc) {\n")
 
@@ -751,7 +755,7 @@ def _render_tb_cpp(iface: _TopIface, t: Tb, *, trace_plan: TracePlan | None = No
     # DriveWhen conditional logic (after static drives, before step)
     if dw_specs:
         lines.append("\n    // Conditional drives (drive_when) — check after static drives.\n")
-        for tag, csn, cw, cv, st, rp, drive_ports, on_done_ports in dw_specs:
+        for tag, csn, cw, cv, st, rp, drive_seq, on_done_ports in dw_specs:
             # on_done: apply cleanup drives if fired last cycle
             if on_done_ports:
                 lines.append(f"    if (dw_{tag}_fired_prev) {{\n")
@@ -766,8 +770,27 @@ def _render_tb_cpp(iface: _TopIface, t: Tb, *, trace_plan: TracePlan | None = No
                 lines.append(f"      if (dut.{csn}.value() == {cv}u) {{\n")
             else:
                 lines.append(f"      if (dut.{csn}.value() == {cv}ull) {{\n")
-            for dsn, val, dty, dw_ in drive_ports:
-                lines.append(f"        dut.{dsn} = {wire_literal(val, dw_)};\n")
+
+            # Check if all firings have the same drives (uniform mode)
+            all_same = all(
+                set((dsn, val) for dsn, val, _, _ in fp) == set((dsn, val) for dsn, val, _, _ in drive_seq[0])
+                for fp in drive_seq
+            )
+            if all_same:
+                # All firings identical — no switch needed
+                for dsn, val, dty, dw_ in drive_seq[0]:
+                    lines.append(f"        dut.{dsn} = {wire_literal(val, dw_)};\n")
+            else:
+                # Per-firing values — use switch(count)
+                lines.append(f"        switch (dw_{tag}_count) {{\n")
+                for idx, firing_ports in enumerate(drive_seq):
+                    lines.append(f"        case {idx}:\n")
+                    for dsn, val, dty, dw_ in firing_ports:
+                        lines.append(f"          dut.{dsn} = {wire_literal(val, dw_)};\n")
+                    lines.append(f"          break;\n")
+                lines.append(f"        default: break;\n")
+                lines.append(f"        }}\n")
+
             lines.append(f"        dw_{tag}_count++;\n")
             if on_done_ports:
                 lines.append(f"        dw_{tag}_fired_prev = true;\n")
