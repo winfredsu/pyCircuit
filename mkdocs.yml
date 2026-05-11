@@ -96,6 +96,12 @@ nav:
       - development/testing-and-gates.md
       - development/review-and-merge.md
       - development/v5-improvement-agent-workflows.md
+      - V5 Improvement Agent Lanes:
+          - development/v5-improvement-agent-lanes/source-correlation.md
+          - development/v5-improvement-agent-lanes/rtl-porting.md
+          - development/v5-improvement-agent-lanes/cpp-sim-perf.md
+          - development/v5-improvement-agent-lanes/testbench-ergonomics.md
+          - development/v5-improvement-agent-lanes/review.md
   - Upgrade:
       - updatePLAN.md
       - rfcs/pyc4.0-decisions.md

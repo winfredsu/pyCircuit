@@ -36,6 +36,8 @@ evidence corpus remains:
 - `review-and-merge.md`: review standard, PR content, and merge blockers
 - `v5-improvement-agent-workflows.md`: reusable workflows for agent-driven V5
   discovery, proposals, tiny prototypes, and review passes
+- `v5-improvement-agent-lanes/`: lane-specific workflows for parallel V5
+  improvement agents
 
 ## Related references
 
