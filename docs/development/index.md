@@ -16,6 +16,8 @@ evidence corpus remains:
 2. `docs/development/testing-and-gates.md`
 3. `docs/development/review-and-merge.md`
 4. `docs/gates/README.md`
+5. `docs/development/v5-improvement-agent-workflows.md` when planning
+   agent-driven V5 improvement research
 
 ## Standard commands
 
@@ -32,6 +34,8 @@ evidence corpus remains:
   documentation expectations
 - `testing-and-gates.md`: required validation matrix by change type
 - `review-and-merge.md`: review standard, PR content, and merge blockers
+- `v5-improvement-agent-workflows.md`: reusable workflows for agent-driven V5
+  discovery, proposals, tiny prototypes, and review passes
 
 ## Related references
 

@@ -10,6 +10,8 @@ This section covers **pyc4.0** (`@module` / `Circuit`) authoring and the **tick/
 ## PyCircuit V5 (cycle-aware Python front-end)
 
 - [PyCircuit V5 编程规范](../PyCircuit_V5_Spec.md) (unified spec: API + tutorial + patterns)
+- [V5 Improvement Agent Workflows](../development/v5-improvement-agent-workflows.md)
+  (agent-driven discovery, proposals, and tiny prototypes)
 
 ## Start here
 

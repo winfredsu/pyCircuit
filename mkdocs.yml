@@ -95,6 +95,7 @@ nav:
       - development/contributing-workflow.md
       - development/testing-and-gates.md
       - development/review-and-merge.md
+      - development/v5-improvement-agent-workflows.md
   - Upgrade:
       - updatePLAN.md
       - rfcs/pyc4.0-decisions.md
