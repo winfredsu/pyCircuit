@@ -135,6 +135,15 @@ Suggested for conductor application:
 3. Derived width/depth diagnostics or documentation task.
 4. Generated artifact naming review for queue storage and handshake terms.
 
+## Verification Note
+
+Fresh Task 5 verification was performed after claiming the conductor follow-up:
+
+- `pre-commit run --files docs/v5-lab/rtl-source-inventory.md docs/v5-lab/lanes/rtl-porting.md docs/v5-lab/iterations/001-open-rtl-porting.md docs/v5-lab/proposals/ready-valid-fifo-helpers.md` — expected docs hooks only; must pass before completion.
+- `mkdocs build` — documentation build gate; existing repository nav/anchor warnings are conductor-owned and outside this lane.
+- `python -m pytest` — repository configured test suite; no code was changed for this docs-only task.
+- Full-repo `ruff`/`mypy` were previously run and fail on pre-existing Python issues outside the allowed docs scope; Task 5 does not edit those files.
+
 Handoff:
 
 - Evidence: verified three upstream candidates in `docs/v5-lab/rtl-source-inventory.md`; selected Apache-2.0 OpenTitan `prim_fifo_sync` at commit `d7237495dea39d79ccfabeece84c1ab376804ad7`; recorded source record, behavior sketch, reference evidence, pseudo-code, friction table, and generated-artifact deferral.
