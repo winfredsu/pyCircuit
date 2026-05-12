@@ -14,6 +14,25 @@ It complements the active CI workflows; it does not replace reviewer judgment.
 
 Use the pull request template to answer these directly in the PR body.
 
+## Improvement Proposal PR Flow
+
+For V5 Improvement Lab work, every accepted improvement suggestion should become
+one dedicated branch and one dedicated pull request.
+
+- Create one branch per proposal, usually named `codex/v5-<topic>`.
+- Keep the branch scoped to the proposal under `docs/v5-lab/proposals/`.
+- Track the proposal, branch, PR title, required gates, evidence path, and
+  user-review status in `docs/v5-lab/pr-queue.md`.
+- Do not combine unrelated improvement suggestions in one PR, even if they were
+  discovered in the same agent wave.
+- Do not submit a pull request to the public pyCircuit repository until the user
+  has reviewed and approved the branch/PR contents.
+- Before public submission, prepare the PR body with links to the proposal,
+  gate evidence, implementation scope, non-goals, and residual risks.
+
+Agents may prepare local branches, draft PR text, and fork-side review artifacts.
+The public upstream PR is a human-approved step.
+
 ## Review priorities
 
 Reviewers should prioritize:

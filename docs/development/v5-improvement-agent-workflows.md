@@ -29,6 +29,8 @@ docs/v5-lab/
   backlog.md
   findings.md
   decision-log.md
+  rtl-source-inventory.md
+  pr-queue.md
   benchmarks.md
   claims.md
   integration.md
@@ -53,6 +55,8 @@ docs/v5-lab/
 | `backlog.md` | V5 改进候选池，按影响力、实现难度、风险排序 |
 | `findings.md` | 从代码、文档、examples、tests 中审计出的事实与缺口 |
 | `decision-log.md` | 每轮为什么选择某个主题，以及为什么推迟其他主题 |
+| `rtl-source-inventory.md` | 候选开源 RTL 清单、license gate、porting 适配性和选择理由 |
+| `pr-queue.md` | 已通过 review 的改进建议到 branch/PR 的排队、状态和审阅记录 |
 | `benchmarks.md` | C++ sim benchmark targets、命令、指标、环境和趋势 |
 | `claims.md` | 多 agent 并行时的 lane ownership、当前任务、文件写入范围 |
 | `integration.md` | conductor 汇总的跨 lane 结论、冲突、去重和优先级调整 |
@@ -82,6 +86,113 @@ conductor 不做深挖，负责分配 lane、维护共享 backlog、合并发现
 agent 写同一文件。每个 lane agent 只负责一个方向，独立迭代并写自己的 lane
 日志、iteration note 和 proposal。
 
+### Pre-wave Gates
+
+每一轮 wave 开始前，conductor 必须先完成轻量 gate，避免 agents 直接进入
+宽泛改写：
+
+1. **Contract intake**: 读取 `AGENTS.md`、`docs/development/testing-and-gates.md`
+   和本 workflow，确认当前任务仍然只面向 pyc5/V5 surface。
+2. **Ownership intake**: 在 `claims.md` 中列出每个 lane 的写入范围、禁止触碰
+   的 shared files、handoff 格式和本轮 stop condition。
+3. **RTL source intake**: 如果本轮包含 `rtl-porting`，先维护
+   `rtl-source-inventory.md`，再选择单个 100-500 行左右的 RTL slice。
+4. **Review cadence**: 每一轮至少安排一次 review pass。若本轮产出 proposal，
+   review lane 必须在下一轮实现前审查 evidence、scope、acceptance tests 和
+   license/porting 风险。
+
+### RTL Source Intake Gate
+
+`rtl-porting` 的目的不是把外部 RTL 大量复制进仓库，而是用真实 RTL 暴露 V5
+表达、诊断、testbench 和 generated artifact 的缺口。因此 conductor 应维护
+`docs/v5-lab/rtl-source-inventory.md`，每个候选项至少记录：
+
+- upstream project、URL、commit/tag、license、module path
+- approximate line count、interface family、testbench/reference quality
+- why it is useful for V5 friction discovery
+- whether the license is acceptable for porting or study-only
+- selected slice and the expected V5 surface it stresses
+
+License policy:
+
+- Prefer permissive and hardware-friendly licenses such as Apache-2.0, BSD,
+  MIT, ISC, or Solderpad-style permissive licenses.
+- GPL/LGPL, unclear, missing, or custom licenses are **study-only** unless the
+  user explicitly approves a legal review path.
+- Do not copy large third-party source files into this repo. Keep short excerpts
+  only when needed for explanation, and otherwise summarize patterns.
+
+Good first candidate pools:
+
+- OpenTitan primitives and small IP fragments: FIFOs, SRAM wrappers, CDC and
+  ready/valid-style infrastructure.
+- lowRISC Ibex small modules: decode/control/CSR/FIFO-style slices, not the
+  whole core.
+- PULP Platform common cells or AXI fragments: arbiters, stream/FIFO blocks,
+  AXI-Lite cuts, demuxes and width converters.
+- PicoRV32 small interface/control slices: memory interface, trace/debug, simple
+  state machine patterns, not the whole CPU.
+- FuseSoC Package Directory, FreeCores, and OpenCores-derived mirrors only after
+  license, maintenance status and testbench quality are checked per repository.
+
+### RTL Porting Ladder
+
+When a candidate passes intake, use this ladder instead of jumping directly to
+compiler changes:
+
+1. **Source record**: record source URL, commit/tag, license, module path and
+   interface summary.
+2. **Behavior sketch**: summarize state, timing, handshake and reset behavior.
+3. **Reference evidence**: note upstream testbench, docs or simple sim command
+   when available.
+4. **V5 pseudo-code**: write the smallest V5 translation attempt or pseudo-code
+   that exposes the friction.
+5. **Friction table**: map RTL patterns to current V5 expression, pain point and
+   proposed improvement.
+6. **Tiny compile prototype**: only if feasible, compile the V5 slice and inspect
+   generated MLIR/Verilog/C++ artifacts.
+7. **Proposal or backlog**: convert repeated friction into a proposal with
+   acceptance tests; otherwise record it as backlog evidence.
+
+The first wave should prefer documentation/prototype artifacts under
+`docs/v5-lab/` over shared compiler changes. Shared implementation edits require
+an explicit follow-up plan and review pass.
+
+### Branch And Pull Request Policy
+
+Every accepted improvement proposal should become its own branch and pull
+request. Do not bundle unrelated improvement suggestions into one PR just
+because they were discovered in the same agent wave.
+
+Lifecycle:
+
+1. A lane writes a proposal under `docs/v5-lab/proposals/<topic>.md`.
+2. The review lane accepts it or requests revisions.
+3. The conductor records the proposal in `docs/v5-lab/pr-queue.md` with:
+   - proposal path
+   - intended branch name, usually `codex/v5-<topic>`
+   - PR title
+   - scope and non-goals
+   - required gates and expected evidence path
+   - user-review status
+4. Implementation happens on the dedicated branch only.
+5. The agent may prepare a local PR summary, draft body, evidence list, and fork
+   branch, but must not submit a public pyCircuit pull request before the user
+   has reviewed and approved the branch/PR contents.
+6. After user approval, submit the pull request to the public pyCircuit
+   repository with links to the proposal, gate evidence, and any RTL source
+   intake records.
+
+Branch rules:
+
+- Use one branch per improvement suggestion.
+- Keep branch names stable and descriptive, for example
+  `codex/v5-source-correlation-map` or `codex/v5-cycleawaretb-history`.
+- If two proposals share implementation files, keep separate PRs unless the
+  conductor records why they must land together.
+- If an implementation uncovers a larger semantic change, stop the branch at the
+  smallest safe point and create a follow-up proposal instead of widening the PR.
+
 ### Agent Roles
 
 | Role | Ownership | Primary outputs |
@@ -100,6 +211,10 @@ unless each lane has a disjoint output file set.
 
 - Only conductor edits `docs/v5-lab/backlog.md`, `claims.md`, and
   `integration.md` during a parallel wave.
+- Only conductor edits `docs/v5-lab/rtl-source-inventory.md` unless it explicitly
+  delegates a bounded inventory update to `rtl-porting`.
+- Only conductor edits `docs/v5-lab/pr-queue.md` unless a review or implementation
+  lane is explicitly assigned to update one PR entry.
 - Lane agents write only:
   - their `docs/v5-lab/lanes/<lane>.md`
   - their `docs/v5-lab/iterations/<NNN-lane-topic>.md`
@@ -205,8 +320,9 @@ Start a PyCircuit V5 Improvement Lab parallel wave with four lane agents:
 
 2. rtl-porting
    Workflow: docs/development/v5-improvement-agent-lanes/rtl-porting.md
-   Question: Port one small open RTL module to V5 pseudo-code/prototype and
-   identify missing syntax/API patterns.
+   Question: Build a license-gated RTL source inventory, then port one small
+   open RTL module to V5 pseudo-code/prototype and identify missing syntax/API
+   patterns.
 
 3. cpp-sim-perf
    Workflow: docs/development/v5-improvement-agent-lanes/cpp-sim-perf.md
@@ -219,7 +335,10 @@ Start a PyCircuit V5 Improvement Lab parallel wave with four lane agents:
    easier to write and failures easier to diagnose?
 
 Conductor should assign disjoint output files, wait for lane handoffs, then
-write docs/v5-lab/integration.md and update backlog priority.
+write docs/v5-lab/integration.md and update backlog priority. If any lane
+produces a proposal, run the review lane before scheduling implementation. Each
+accepted proposal should then be added to docs/v5-lab/pr-queue.md as a separate
+branch/PR candidate for user review.
 ```
 
 ## Single-Agent Mode

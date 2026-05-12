@@ -10,6 +10,8 @@ This section covers **pyc4.0** (`@module` / `Circuit`) authoring and the **tick/
 ## PyCircuit V5 (cycle-aware Python front-end)
 
 - [PyCircuit V5 编程规范](../PyCircuit_V5_Spec.md) (unified spec: API + tutorial + patterns)
+- [OMX V5 Multi-Agent Quickstart](../development/omx-v5-multi-agent-quickstart.md)
+  (commands for launching planned multi-agent V5 improvement waves)
 - [V5 Improvement Agent Workflows](../development/v5-improvement-agent-workflows.md)
   (agent-driven discovery, proposals, and tiny prototypes)
 
