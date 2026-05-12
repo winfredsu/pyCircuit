@@ -58,6 +58,15 @@ For conductor application to `docs/v5-lab/backlog.md`:
 
 - `docs/v5-lab/proposals/ready-valid-fifo-helpers.md`
 
+## Verification Note
+
+Fresh Task 5 verification was performed after claiming the conductor follow-up:
+
+- `pre-commit run --files docs/v5-lab/rtl-source-inventory.md docs/v5-lab/lanes/rtl-porting.md docs/v5-lab/iterations/001-open-rtl-porting.md docs/v5-lab/proposals/ready-valid-fifo-helpers.md` — expected docs hooks only; must pass before completion.
+- `mkdocs build` — documentation build gate; existing repository nav/anchor warnings are conductor-owned and outside this lane.
+- `python -m pytest` — repository configured test suite; no code was changed for this docs-only task.
+- Full-repo `ruff`/`mypy` were previously run and fail on pre-existing Python issues outside the allowed docs scope; Task 5 does not edit those files.
+
 Handoff:
 
 - Evidence: `docs/v5-lab/rtl-source-inventory.md` now records three verified candidates, selected OpenTitan `prim_fifo_sync`, license decisions, and expected V5 stress surface; `docs/v5-lab/iterations/001-open-rtl-porting.md` records source, behavior sketch, V5 pseudo-code, friction table, and deferral of generated artifact observations.
