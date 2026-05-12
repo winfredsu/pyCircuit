@@ -105,7 +105,7 @@ baseline records real numbers.
 - Benchmark output records pyCircuit revision, host/toolchain, build/run
   command, cycle count, compile time, runtime, cycles/sec, and one overhead
   metric.
-- Existing C+++Verilator smoke/system gate still passes for the touched target.
+- Existing C++/Verilator smoke/system gate still passes for the touched target.
 
 ## Risks And Non-goals
 
