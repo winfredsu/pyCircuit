@@ -1,7 +1,7 @@
 # RTL Porting Lane — Wave 001
 
-Worker: `worker-2`  
-Workflow: `docs/development/v5-improvement-agent-lanes/rtl-porting.md`  
+Worker: `worker-2`
+Workflow: `docs/development/v5-improvement-agent-lanes/rtl-porting.md`
 Iteration: `docs/v5-lab/iterations/001-open-rtl-porting.md`
 
 ## Scope Guard
@@ -59,6 +59,7 @@ For conductor application to `docs/v5-lab/backlog.md`:
 - `docs/v5-lab/proposals/ready-valid-fifo-helpers.md`
 
 Handoff:
+
 - Evidence: `docs/v5-lab/rtl-source-inventory.md` now records three verified candidates, selected OpenTitan `prim_fifo_sync`, license decisions, and expected V5 stress surface; `docs/v5-lab/iterations/001-open-rtl-porting.md` records source, behavior sketch, V5 pseudo-code, friction table, and deferral of generated artifact observations.
 - Proposed backlog changes: prioritize a small ready/valid FIFO example/helper path, reset/clear precedence tests, derived width diagnostics/docs, and generated naming review for FIFO internals.
 - Risks: pseudo-code was not compiled in Wave 001; upstream FIFO assertion behavior was summarized rather than imported; exact V5 API shape needs confirmation before implementation because shared code/tests were out of scope.

@@ -136,6 +136,7 @@ Suggested for conductor application:
 4. Generated artifact naming review for queue storage and handshake terms.
 
 Handoff:
+
 - Evidence: verified three upstream candidates in `docs/v5-lab/rtl-source-inventory.md`; selected Apache-2.0 OpenTitan `prim_fifo_sync` at commit `d7237495dea39d79ccfabeece84c1ab376804ad7`; recorded source record, behavior sketch, reference evidence, pseudo-code, friction table, and generated-artifact deferral.
 - Proposed backlog changes: add ready/valid FIFO helper/example, reset/clear precedence tests, derived width/depth diagnostics/docs, and generated artifact naming review for FIFO internals.
 - Risks: pseudo-code includes placeholder V5 API forms and was not compiled; upstream assertion details are summarized only; legal/license decision is based on upstream metadata observed on 2026-05-12 and should be rechecked before any source import.
