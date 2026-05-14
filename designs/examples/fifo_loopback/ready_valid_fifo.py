@@ -3,7 +3,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable, NamedTuple
 
-from pycircuit import CycleAwareCircuit, CycleAwareDomain, cas, compile_cycle_aware, mux, wire_of
+from pycircuit import (
+    CycleAwareCircuit,
+    CycleAwareDomain,
+    cas,
+    compile_cycle_aware,
+    u,
+    wire_of,
+)
 
 DATA_WIDTH = 8
 DEPTH = 2
@@ -107,25 +114,12 @@ def simulate_reference(
     return outputs, state
 
 
-def _in(
-    inputs: dict[str, object] | None,
-    key: str,
-    m: CycleAwareCircuit,
-    domain: CycleAwareDomain,
-    width: int,
-):
-    if inputs is not None and key in inputs:
-        return inputs[key]
-    return cas(domain, m.input(key, width=width), cycle=0)
-
-
 def build(
     m: CycleAwareCircuit,
     domain: CycleAwareDomain,
     *,
-    inputs: dict[str, object] | None = None,
     pass_through: bool = True,
-) -> dict[str, object]:
+) -> None:
     """Build a small V5 ready/valid FIFO fixture with observable status outputs.
 
     This example intentionally avoids a public helper API and compiler changes: it is
@@ -133,29 +127,27 @@ def build(
     push/pop, optional empty pass-through, and debug names are visible in MLIR.
     """
 
-    wvalid = _in(inputs, "wvalid", m, domain, 1)
-    wdata = _in(inputs, "wdata", m, domain, DATA_WIDTH)
-    rready = _in(inputs, "rready", m, domain, 1)
-    clear = _in(inputs, "clear", m, domain, 1)
+    wvalid = cas(domain, m.input("wvalid", width=1), cycle=0)
+    wdata = cas(domain, m.input("wdata", width=DATA_WIDTH), cycle=0)
+    rready = cas(domain, m.input("rready", width=1), cycle=0)
+    clear = cas(domain, m.input("clear", width=1), cycle=0)
 
     data0 = domain.signal(width=DATA_WIDTH, reset_value=0, name="rvfifo_data0")
     data1 = domain.signal(width=DATA_WIDTH, reset_value=0, name="rvfifo_data1")
     count = domain.signal(width=2, reset_value=0, name="rvfifo_count")
 
-    zero1 = cas(domain, m.const(0, width=1), cycle=0)
-    one1 = cas(domain, m.const(1, width=1), cycle=0)
-    zero2 = cas(domain, m.const(0, width=2), cycle=0)
-    one2 = cas(domain, m.const(1, width=2), cycle=0)
-    depth2 = cas(domain, m.const(DEPTH, width=2), cycle=0)
-    zero_data = cas(domain, m.const(0, width=DATA_WIDTH), cycle=0)
-    pass_enable = cas(domain, m.const(1 if pass_through else 0, width=1), cycle=0)
+    zero2 = u(2, 0)
+    one2 = u(2, 1)
+    depth2 = u(2, DEPTH)
+    zero_data = u(DATA_WIDTH, 0)
+    pass_enable = u(1, 1 if pass_through else 0)
 
     raw_empty = count == zero2
     empty = clear | raw_empty
     full = (~clear) & (count == depth2)
     pass_read = pass_enable & raw_empty & wvalid
     rvalid = (~clear) & ((~raw_empty) | pass_read)
-    rdata = mux(pass_read, wdata, mux(raw_empty | clear, zero_data, data0))
+    rdata = wdata if pass_read else (zero_data if (raw_empty | clear) else data0)
     wready = (~clear) & ((~full) | (rready & rvalid))
 
     write_fire = wvalid & wready
@@ -163,62 +155,58 @@ def build(
     overflow = wvalid & (~wready) & (~clear)
     underflow = rready & (~rvalid) & (~clear)
 
-    outs: dict[str, object] = {
-        "wready": wready,
-        "rvalid": rvalid,
-        "rdata": rdata,
-        "depth": mux(clear, zero2, count),
-        "full": full,
-        "empty": empty,
-        "write_fire": write_fire,
-        "read_fire": read_fire,
-        "overflow": overflow,
-        "underflow": underflow,
-    }
-
-    if inputs is None:
-        for name, value in outs.items():
-            m.output(name, wire_of(value))
+    m.output("wready", wire_of(wready))
+    m.output("rvalid", wire_of(rvalid))
+    m.output("rdata", wire_of(rdata))
+    m.output("depth", wire_of(zero2 if clear else count))
+    m.output("full", wire_of(full))
+    m.output("empty", wire_of(empty))
+    m.output("write_fire", wire_of(write_fire))
+    m.output("read_fire", wire_of(read_fire))
+    m.output("overflow", wire_of(overflow))
+    m.output("underflow", wire_of(underflow))
 
     domain.next()
 
     push_only = write_fire & (~read_fire)
     pop_only = read_fire & (~write_fire)
     pass_consumed = pass_read & read_fire
-    count_inc = (count + one2).trunc(2)
-    count_dec = (count - one2).trunc(2)
-    next_count = mux(clear, zero2, mux(push_only, count_inc, mux(pop_only, count_dec, count)))
+    count_inc = (count + one2)[0:2]
+    count_dec = (count - one2)[0:2]
+    next_count = zero2 if clear else (count_inc if push_only else (count_dec if pop_only else count))
 
     count_is_zero = count == zero2
     count_is_one = count == one2
     count_is_two = count == depth2
 
-    next_data0 = mux(
-        clear,
-        zero_data,
-        mux(
-            read_fire,
-            mux(write_fire, mux(count_is_one, wdata, mux(count_is_two, data1, data0)), data1),
-            mux(write_fire & count_is_zero & (~pass_consumed), wdata, data0),
-        ),
+    pushed_empty = write_fire & count_is_zero & (~pass_consumed)
+    simultaneous_count_one = write_fire & count_is_one
+    simultaneous_count_two = write_fire & count_is_two
+
+    pop_data0 = (
+        wdata
+        if simultaneous_count_one
+        else (data1 if simultaneous_count_two else data0)
     )
-    next_data1 = mux(
-        clear,
-        zero_data,
-        mux(read_fire & write_fire & count_is_two, wdata, mux(write_fire & count_is_one & (~read_fire), wdata, data1)),
+    hold_or_push_data0 = wdata if pushed_empty else data0
+    next_data0 = zero_data if clear else (pop_data0 if read_fire else hold_or_push_data0)
+    next_data1 = (
+        zero_data
+        if clear
+        else (
+            wdata
+            if (read_fire & write_fire & count_is_two)
+            else (wdata if (write_fire & count_is_one & (~read_fire)) else data1)
+        )
     )
 
     data0 <<= next_data0
     data1 <<= next_data1
     count <<= next_count
 
-    return outs
-
 
 build.__pycircuit_name__ = "ready_valid_fifo"
 
 
 if __name__ == "__main__":
-    print(
-        compile_cycle_aware(build, name="ready_valid_fifo", eager=True).emit_mlir()
-    )
+    print(compile_cycle_aware(build, name="ready_valid_fifo").emit_mlir())

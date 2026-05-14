@@ -9,11 +9,19 @@ import pycircuit
 
 pytestmark = pytest.mark.unit
 
-_EXAMPLE_DIR = Path(__file__).resolve().parents[2] / "designs" / "examples" / "fifo_loopback"
+_EXAMPLE_DIR = (
+    Path(__file__).resolve().parents[2] / "designs" / "examples" / "fifo_loopback"
+)
 if str(_EXAMPLE_DIR) not in sys.path:
     sys.path.insert(0, str(_EXAMPLE_DIR))
 
-from ready_valid_fifo import FifoCycle, FifoState, build, simulate_reference, step_reference  # noqa: E402
+from ready_valid_fifo import (  # noqa: E402
+    FifoCycle,
+    FifoState,
+    build,
+    simulate_reference,
+    step_reference,
+)
 
 
 def test_reference_reset_clear_push_pop_and_status_trace() -> None:
@@ -82,7 +90,7 @@ def test_empty_pass_through_enabled_and_disabled_are_explicit() -> None:
 
 
 def test_v5_fifo_fixture_compiles_with_stable_debug_names() -> None:
-    design = pycircuit.compile_cycle_aware(build, name="ready_valid_fifo", eager=True)
+    design = pycircuit.compile_cycle_aware(build, name="ready_valid_fifo")
     mlir = design.emit_mlir()
 
     for name in [
