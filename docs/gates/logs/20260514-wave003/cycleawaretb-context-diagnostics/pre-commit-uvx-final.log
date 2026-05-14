@@ -1,0 +1,9 @@
+$ uvx pre-commit run --files compiler/frontend/pycircuit/cli.py compiler/frontend/pycircuit/tb.py compiler/frontend/pycircuit/testbench.py compiler/frontend/pycircuit/v5.py tests/unit/test_cycleawaretb_diagnostics.py docs/TESTBENCH.md docs/PyCircuit_V5_Spec.md
+check for merge conflicts................................................Passed
+check yaml...........................................(no files to check)Skipped
+fix end of files.........................................................Passed
+trim trailing whitespace.................................................Passed
+ruff.....................................................................Passed
+black....................................................................Passed
+markdownlint-cli2........................................................Passed
+pyCircuit API hygiene gate...............................................Passed

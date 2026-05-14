@@ -1,0 +1,18 @@
+{
+  "run_id": "20260514-wave003/cycleawaretb-context-diagnostics",
+  "status": "partial-pass",
+  "passed": [
+    "focused-unit-final.log",
+    "unit-final.log",
+    "pre-commit-uvx-final.log",
+    "api-hygiene-final.log",
+    "mkdocs.log"
+  ],
+  "blocked": [
+    {
+      "gate": "run_examples",
+      "log": "run-examples.log",
+      "reason": "missing pycc in worker environment (set PYCC or build with flows/scripts/pyc build)"
+    }
+  ]
+}

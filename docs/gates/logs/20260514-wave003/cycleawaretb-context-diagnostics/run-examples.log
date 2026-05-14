@@ -1,0 +1,2 @@
+$ PYC_GATE_RUN_ID=20260514-wave003/cycleawaretb-context-diagnostics bash flows/scripts/run_examples.sh
+[pyc][error] missing pycc (set PYCC=... or build it with: flows/scripts/pyc build)
