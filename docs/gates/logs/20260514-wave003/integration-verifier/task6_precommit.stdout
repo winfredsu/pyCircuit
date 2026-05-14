@@ -1,0 +1,14 @@
+check for merge conflicts................................................Passed
+check yaml...........................................(no files to check)Skipped
+fix end of files.........................................................Failed
+- hook id: end-of-file-fixer
+- exit code: 1
+- files were modified by this hook
+
+Fixing docs/gates/logs/20260514-wave003/integration-verifier/task-6.initial.json
+
+trim trailing whitespace.................................................Passed
+ruff.................................................(no files to check)Skipped
+black................................................(no files to check)Skipped
+markdownlint-cli2........................................................Passed
+pyCircuit API hygiene gate...............................................Passed

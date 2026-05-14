@@ -2,6 +2,7 @@
   "run_id": "20260514-wave003",
   "lane": "integration-verifier",
   "audit_status": "FINAL_PASS_WITH_TOOLCHAIN_CAVEATS",
+  "task6_refresh": "PASS",
   "gates": [
     {
       "gate": "api_hygiene.audit",
@@ -215,6 +216,59 @@
       "ended_at": "2026-05-14T05:18:31Z"
     },
     {
+      "gate": "task6_api_hygiene",
+      "command": [
+        "uv",
+        "run",
+        "--extra",
+        "dev",
+        "python3",
+        "flows/tools/check_api_hygiene.py",
+        "compiler/frontend/pycircuit",
+        "designs/examples",
+        "docs",
+        "README.md"
+      ],
+      "exit_code": 0,
+      "started_at": "2026-05-14T05:33:56Z",
+      "ended_at": "2026-05-14T05:33:56Z"
+    },
+    {
+      "gate": "task6_mkdocs",
+      "command": [
+        "uv",
+        "run",
+        "--extra",
+        "docs",
+        "mkdocs",
+        "build"
+      ],
+      "exit_code": 0,
+      "started_at": "2026-05-14T05:33:56Z",
+      "ended_at": "2026-05-14T05:33:57Z"
+    },
+    {
+      "gate": "task6_precommit",
+      "command": [
+        "uv",
+        "run",
+        "--extra",
+        "dev",
+        "--extra",
+        "docs",
+        "pre-commit",
+        "run",
+        "--files",
+        "docs/v5-lab/iterations/003-integration-verifier.md",
+        "docs/gates/logs/20260514-wave003/integration-verifier/task-6.initial.json",
+        "docs/gates/logs/20260514-wave003/integration-verifier/task-6-refresh.md",
+        "docs/gates/logs/20260514-wave003/integration-verifier/commands.txt"
+      ],
+      "exit_code": 1,
+      "started_at": "2026-05-14T05:33:56Z",
+      "ended_at": "2026-05-14T05:33:56Z"
+    },
+    {
       "gate": "unit_subset.final",
       "command": [
         "uv",
@@ -232,5 +286,5 @@
       "ended_at": "2026-05-14T05:31:12Z"
     }
   ],
-  "overall": "PASS"
+  "overall": "FAIL"
 }
