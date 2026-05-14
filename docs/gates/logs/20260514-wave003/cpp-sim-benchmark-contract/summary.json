@@ -1,0 +1,13 @@
+{
+  "run_id": "20260514-wave003",
+  "status": "pass",
+  "gates": {
+    "pre_commit": "pass",
+    "api_hygiene": "pass",
+    "mkdocs_build": "pass"
+  },
+  "notes": [
+    "mkdocs build required UV_OFFLINE=1 because direct PyPI fetch timed out in this environment.",
+    "All evidence artifacts are repo-relative and confined to docs/gates/logs/20260514-wave003/cpp-sim-benchmark-contract/."
+  ]
+}

@@ -30,26 +30,29 @@ contract. Without fixed targets, correctness gates, environment metadata, and
 A/B dimensions, optimization proposals can become anecdotal or regress
 simulation semantics while improving wall-clock time on one machine.
 
-## Proposed V5 Code
+## Proposed Future Workflow
 
 ```bash
-# Proposed follow-up user/developer workflow shape, not implemented in Wave 001.
+# Proposed follow-up user/developer workflow shape, not implemented by the
+# Wave 003 contract branch.
 python -m pycircuit.cli build designs/examples/counter/tb_counter.py \
   --target cpp \
   --out-dir build/v5-cpp-bench/counter
 
 python tools/run_v5_cpp_bench.py \
-  --target counter \
+  --target cpp-tiny-counter \
   --cycles 100000 \
   --seed 1 \
   --variant default \
   --variant disable-instance-cache \
-  --variant trace-window \
-  --out docs/v5-lab/results/cpp-tiny-counter.json
+  --variant disable-primitive-cache \
+  --variant stats-on \
+  --out docs/v5-lab/results/<run-id>/cpp-tiny-counter.json
 ```
 
 The exact CLI/script location should be decided in a follow-up implementation
-proposal. Wave 001 only records the methodology and acceptance contract.
+proposal. The Wave 003 branch `codex/v5-cpp-sim-benchmark-contract` records the
+contract/schema/evidence path only.
 
 ## Semantics
 
@@ -88,12 +91,31 @@ baseline records real numbers.
 
 ## Minimal Implementation Path
 
-1. Add a small benchmark runner that writes JSON and Markdown result summaries.
+The work is split into two reviewed steps.
+
+### Step 1: Docs-only benchmark contract
+
+Branch: `codex/v5-cpp-sim-benchmark-contract`
+
+1. Tighten `docs/v5-lab/benchmarks.md` with the result schema, fixed
+   `cpp-tiny-counter` dimensions, and repo-relative evidence path.
+2. Reserve `docs/v5-lab/results/<run-id>/cpp-tiny-counter.json` as the first
+   result file shape.
+3. Define required JSON fields: schema version, run id, target, environment,
+   stimulus, variants, correctness, and evidence.
+4. Keep this step docs-only: no runner, generated C++ runtime, emitter,
+   optimization, or benchmark numbers.
+
+### Step 2: Follow-up benchmark runner
+
+1. Add a small benchmark runner that writes schema-compatible JSON and Markdown
+   result summaries.
 2. Add a tiny counter/FSM target with a deterministic checker.
-3. Add a medium regfile/FIFO-style target with hazards and idle cycles.
-4. Wire A/B variants to existing cache macros and `PYC_SIM_STATS` controls.
-5. Record the first baseline in `docs/v5-lab/benchmarks.md` or a conductor-
-   approved results location.
+3. Wire A/B variants to existing cache macros and `PYC_SIM_STATS` controls.
+4. Record the first baseline in `docs/v5-lab/results/<run-id>/` and summarize
+   it from the JSON.
+5. Add medium regfile/FIFO-style and larger targets only after the tiny target
+   establishes correctness-before-timing.
 6. Only then prototype one optimization at a time.
 
 ## Acceptance Tests
@@ -102,9 +124,11 @@ baseline records real numbers.
   timing is reported.
 - Cache-on/cache-off variants produce identical output logs for the same seed.
 - Trace-off and bounded trace-on variants produce identical functional outputs.
-- Benchmark output records pyCircuit revision, host/toolchain, build/run
-  command, cycle count, compile time, runtime, cycles/sec, and one overhead
-  metric.
+- Benchmark output records the schema fields documented in
+  `docs/v5-lab/benchmarks.md`, including pyCircuit revision/tree status,
+  host/toolchain, build/run commands, fixed seed, reset/warm-up/timed cycles,
+  compile time, runtime, cycles/sec, overhead metrics, correctness, and evidence
+  paths.
 - Existing C++/Verilator smoke/system gate still passes for the touched target.
 
 ## Risks And Non-goals
@@ -119,6 +143,7 @@ Risks:
 
 Non-goals:
 
-- No runtime/emitter optimization is implemented in Wave 001.
+- No benchmark runner is implemented in the contract branch.
+- No runtime/emitter optimization is implemented in the contract branch.
 - No public API change is proposed yet.
 - No large external design is copied into pyCircuit.
