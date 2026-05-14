@@ -1,86 +1,81 @@
-# PyCircuit V5 Improvement Lab — Wave 001 Claims
+# PyCircuit V5 Improvement Lab Claims
 
-Status: **PHASE 1 READY**
-Conductor: leader pane
-Plan artifact: `.omx/plans/v5-improvement-lab-iteration-001.md`
-Workflow: `docs/development/v5-improvement-agent-workflows.md`
-Scope: only current pyc5/V5 authoring surface.
+## Wave 002 Status
 
-## Hard Scope Rules
+PHASE 2 READY: proposal review and PR queue slicing may begin.
 
-- Write only under `docs/v5-lab/` for Wave 001 artifacts.
-- Do not edit shared compiler/API/code/example/test files in this wave.
-- If shared code changes appear necessary, write a prototype/implementation plan in the relevant lane file or proposal and stop.
-- Do not copy large third-party RTL into the repo.
-- Every lane must end with this handoff block:
-  - Evidence
-  - Proposed backlog changes
-  - Risks
-  - Next task
+## Scope
 
-## Worker Assignments
+Wave 002 is docs-only and limited to the current pyc5/V5 authoring surface. The
+wave reviews Wave 001 proposals and turns accepted/revision-ready suggestions
+into narrow Wave 003 branch/PR candidates for user review.
 
-| Worker | Lane | Workflow file | Allowed writes | Stop condition |
-| --- | --- | --- | --- | --- |
-| worker-1 | source-correlation | `docs/development/v5-improvement-agent-lanes/source-correlation.md` | `docs/v5-lab/lanes/source-correlation.md`, `docs/v5-lab/iterations/001-source-correlation.md`, optional `docs/v5-lab/proposals/source-correlation.md` | Handoff block complete with source/cycle provenance evidence and acceptance tests/proposal or deferral. |
-| worker-2 | rtl-porting | `docs/development/v5-improvement-agent-lanes/rtl-porting.md` | `docs/v5-lab/lanes/rtl-porting.md`, `docs/v5-lab/iterations/001-open-rtl-porting.md`, optional `docs/v5-lab/proposals/<topic>.md`, bounded updates to `docs/v5-lab/rtl-source-inventory.md` | Inventory has license decisions, one selected slice, porting ladder evidence, friction table, and handoff. |
-| worker-3 | cpp-sim-perf | `docs/development/v5-improvement-agent-lanes/cpp-sim-perf.md` | `docs/v5-lab/lanes/cpp-sim-perf.md`, `docs/v5-lab/iterations/001-cpp-sim-perf.md`, optional `docs/v5-lab/benchmarks.md`, optional `docs/v5-lab/proposals/cpp-sim-performance.md` | Benchmark methodology and optimization hypotheses complete with correctness gates and handoff. |
-| worker-4 | testbench-ergonomics | `docs/development/v5-improvement-agent-lanes/testbench-ergonomics.md` | `docs/v5-lab/lanes/testbench-ergonomics.md`, `docs/v5-lab/iterations/001-testbench-ergonomics.md`, optional `docs/v5-lab/proposals/cycleawaretb-ergonomics.md` | 2-3 CycleAwareTb workflows reviewed, pain points/proposed workflow/tests recorded, and handoff complete. |
+## Hard Write Boundary
+
+Allowed repository writes are limited to `docs/v5-lab/` proposal, backlog,
+integration, PR-queue, claims, lane review, and iteration review files. Workers
+must not edit:
+
+- `compiler/`
+- `tests/`
+- `designs/`
+- `flows/`
+- `README.md`
+- generated artifacts outside `docs/v5-lab/`
+
+Shared implementation/code changes are out of scope. If a worker believes code
+or tests are needed, it must record a Wave 003 handoff only.
 
 ## Conductor-Owned Files
 
-The leader/conductor owns:
+Only the leader/conductor applies final edits to:
 
 - `docs/v5-lab/claims.md`
 - `docs/v5-lab/backlog.md`
 - `docs/v5-lab/integration.md`
 - `docs/v5-lab/pr-queue.md`
 
-Bounded lane updates are allowed only where listed above.
+Workers may propose exact text for those files in their handoff, but should not
+edit them unless explicitly delegated by the conductor.
 
-## RTL Source Intake / License Gate
+## Worker Ownership
 
-Before worker-2 makes any RTL porting claim, it must update `docs/v5-lab/rtl-source-inventory.md` with at least three candidates and one selected slice. Each candidate must record:
+| Worker | Lane review topic | Primary proposal | Allowed worker-owned outputs |
+| --- | --- | --- | --- |
+| worker-1 | testbench ergonomics | `docs/v5-lab/proposals/cycleawaretb-ergonomics.md` | proposal-focused edits if needed; `docs/v5-lab/iterations/002-review-cycleawaretb-ergonomics.md`; optional append/update to `docs/v5-lab/lanes/review.md` |
+| worker-2 | RTL/FIFO slicing | `docs/v5-lab/proposals/ready-valid-fifo-helpers.md` | proposal-focused edits if needed; `docs/v5-lab/iterations/002-review-ready-valid-fifo.md`; optional append/update to `docs/v5-lab/lanes/review.md` |
+| worker-3 | source correlation slicing | `docs/v5-lab/proposals/source-correlation.md` | proposal-focused edits if needed; `docs/v5-lab/iterations/002-review-source-correlation.md`; optional append/update to `docs/v5-lab/lanes/review.md` |
+| worker-4 | C++ sim perf slicing | `docs/v5-lab/proposals/cpp-sim-performance.md` and `docs/v5-lab/benchmarks.md` | proposal-focused edits if needed; `docs/v5-lab/iterations/002-review-cpp-sim-performance.md`; optional append/update to `docs/v5-lab/lanes/review.md` |
 
-- upstream project, URL, commit/tag, license, module path
-- approximate line count, interface family, testbench/reference quality
-- why useful for V5 friction discovery
-- license decision: `porting-ok` or `study-only`
-- selected slice and expected V5 surface it stresses
+If workers update `docs/v5-lab/lanes/review.md`, they must append a clearly
+scoped section for their assigned proposal to reduce merge conflicts.
 
-License policy:
+## Required Review Output Shape
 
-- Prefer Apache-2.0, BSD, MIT, ISC, or Solderpad-style permissive licenses.
-- GPL/LGPL, unclear, missing, or custom licenses are study-only unless the user explicitly approves legal review.
-- Do not copy large third-party source files; summarize patterns and use only short excerpts if needed.
+Each worker must end its iteration note and leader mailbox report with:
 
-## RTL Porting Ladder
+- Review verdict: accept / revise / split / reject
+- Minimal PR slice
+- Required gates
+- Risks
+- Wave 003 handoff
 
-Worker-2 must follow this order:
+## Acceptance Criteria
 
-1. Source record.
-2. Behavior sketch.
-3. Reference evidence.
-4. V5 pseudo-code or tiny prototype plan.
-5. Friction table.
-6. Generated artifact observations only if feasible and isolated.
-7. Proposal or backlog update with acceptance tests.
+Wave 002 is complete when:
 
-## Verification Gate Before Shutdown
+1. Each of the four proposal reviews has a review iteration note.
+2. Each review includes the required output shape.
+3. The conductor updates `backlog.md`, `integration.md`, and `pr-queue.md` based
+   on accepted/revision-ready slices.
+4. `pr-queue.md` contains only user-review-ready local branch/PR candidates; if
+   any proposal is not ready, it is explicitly marked for revision rather than
+   queued for implementation.
+5. Changed docs pass docs-only gates: `pre-commit run --files ...`, API hygiene
+   as included in pre-commit, and `mkdocs build`.
 
-Conductor verifies:
+## Stop Conditions
 
-- `docs/v5-lab/claims.md` contains `PHASE 1 READY`.
-- Each lane file and iteration file exists or deferral is explicit.
-- Every lane handoff block has Evidence / Proposed backlog changes / Risks / Next task.
-- `git diff --name-only -- docs/v5-lab` shows no writes outside allowed docs/v5-lab files.
-- Any proposal follows the shared proposal template and includes acceptance tests/non-goals.
-- Any proposal added to `pr-queue.md` has review notes.
-
-Recommended docs gates after lane completion:
-
-```bash
-changed=$(git diff --name-only -- docs/v5-lab)
-if [ -n "$changed" ]; then pre-commit run --files $changed; fi
-mkdocs build
-```
+Stop and ask the user if review shows a proposal requires semantic changes that
+conflict with the decision corpus, needs external legal approval, or cannot be
+safely sliced without touching shared code in Wave 002.
