@@ -1,0 +1,6 @@
+bash -n flows/scripts/lib.sh
+bash -lc 'source flows/scripts/lib.sh; unset PYCC PYC_TOOLCHAIN_ROOT; pyc_find_pycc; echo "PYCC=$PYCC"; "$PYCC" --help'
+bash -lc 'source flows/scripts/lib.sh; unset PYCC PYC_TOOLCHAIN_ROOT PYC_REPO_ROOT OMX_TEAM_LEADER_CWD; PYC_ROOT_DIR="$PWD/.omx/team/example/worktrees/worker-1"; pyc_find_pycc; echo "PYCC=$PYCC"; "$PYCC" --help'
+uvx pre-commit run --files flows/scripts/lib.sh docs/development/testing-and-gates.md docs/development/v5-improvement-agent-workflows.md docs/gates/logs/20260514-pycc-team-env/summary.json
+python3 flows/tools/check_api_hygiene.py compiler/frontend/pycircuit designs/examples docs README.md
+uvx --from mkdocs-material --with mdx-gh-links mkdocs build

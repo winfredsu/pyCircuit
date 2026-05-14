@@ -1,0 +1,22 @@
+$ simulated OMX worker worktree pyc_find_pycc
+PYC_ROOT_DIR=/Users/sufang/projects/pyCircuit/.omx/team/example/worktrees/worker-1
+PYCC=/Users/sufang/projects/pyCircuit/.pycircuit_out/toolchain/install/bin/pycc
+PYC_TOOLCHAIN_ROOT=/Users/sufang/projects/pyCircuit/.pycircuit_out/toolchain/install
+OVERVIEW: pycc
+
+USAGE: pycc [options] <input .pyc>
+
+OPTIONS:
+
+Color Options:
+
+  --color                            - Use colors in output (default=autodetect)
+
+General options:
+
+  --build-profile=<string>           - Build profile: release|dev-fast
+  --canonicalize-budget=<uint>       - Canonicalizer budget (max iterations; 0 keeps profile default)
+  --cpp=<string>                     - Direct C++ output path (equivalent to --emit=cpp -o <path>)
+  --cpp-manifest=<string>            - C++ compile manifest path (default: <out-dir>/cpp_compile_manifest.json)
+  --cpp-only-preserve-ops            - Preserve operation-granular C++ scheduling in --sim-mode=cpp-only (disables comb fusion)
+  --cpp-shard-max-ast-nodes=<uint>   - Chunk large eval topologies into helper methods (node budget per chunk; 0=default policy)

@@ -31,26 +31,113 @@ pyc_toolchain_root() {
     fi
   fi
 
-  local candidates=(
-    "${PYC_ROOT_DIR}/.pycircuit_out/toolchain/install"
-    "${PYC_ROOT_DIR}/dist/pycircuit"
-  )
-  local c=""
-  for c in "${candidates[@]}"; do
-    if [[ -x "${c}/bin/pycc" || -x "${c}/bin/pycc.exe" ]]; then
-      echo "${c}"
-      return 0
-    fi
-  done
+  local root=""
+  while IFS= read -r root; do
+    [[ -n "${root}" ]] || continue
+    local candidates=(
+      "${root}/.pycircuit_out/toolchain/install"
+      "${root}/dist/pycircuit"
+    )
+    local c=""
+    for c in "${candidates[@]}"; do
+      if [[ -x "${c}/bin/pycc" || -x "${c}/bin/pycc.exe" ]]; then
+        echo "${c}"
+        return 0
+      fi
+    done
+  done < <(pyc_candidate_roots)
 
   return 1
 }
 
+pyc_candidate_roots() {
+  # Prefer the current checkout.  Team workers run from per-worker git
+  # worktrees, so also accept explicit or derived leader checkout roots for
+  # prebuilt tool lookup without copying artifacts between trees.
+  local roots=("${PYC_ROOT_DIR}")
+
+  if [[ -n "${PYC_REPO_ROOT:-}" ]]; then
+    roots+=("${PYC_REPO_ROOT}")
+  fi
+  if [[ -n "${OMX_TEAM_LEADER_CWD:-}" ]]; then
+    roots+=("${OMX_TEAM_LEADER_CWD}")
+  fi
+
+  case "${PYC_ROOT_DIR}" in
+    */.omx/team/*/worktrees/*)
+      roots+=("${PYC_ROOT_DIR%%/.omx/team/*}")
+      ;;
+  esac
+
+  local seen=":"
+  local r=""
+  for r in "${roots[@]}"; do
+    [[ -n "${r}" && -d "${r}" ]] || continue
+    r="$(cd -- "${r}" && pwd)"
+    case "${seen}" in
+      *:"${r}":*) continue ;;
+    esac
+    seen="${seen}${r}:"
+    echo "${r}"
+  done
+}
+
+pyc_find_toolchain_pycc_candidates() {
+  local exe_suffix="${1:-}"
+  local root=""
+  while IFS= read -r root; do
+    [[ -n "${root}" ]] || continue
+    cat <<EOF
+${root}/.pycircuit_out/toolchain/install/bin/pycc${exe_suffix}
+${root}/dist/pycircuit/bin/pycc${exe_suffix}
+${root}/compiler/mlir/build2/bin/pycc${exe_suffix}
+${root}/build/bin/pycc${exe_suffix}
+${root}/compiler/mlir/build/bin/pycc${exe_suffix}
+${root}/build-top/bin/pycc${exe_suffix}
+${root}/.pycircuit_out/toolchain/install/bin/pycc
+${root}/dist/pycircuit/bin/pycc
+${root}/compiler/mlir/build2/bin/pycc
+${root}/build/bin/pycc
+${root}/compiler/mlir/build/bin/pycc
+${root}/build-top/bin/pycc
+EOF
+  done < <(pyc_candidate_roots)
+}
+
+pyc_export_toolchain_root_for_pycc() {
+  local root=""
+  if root="$(pyc_toolchain_root 2>/dev/null)"; then
+    export PYC_TOOLCHAIN_ROOT="${root}"
+  else
+    local pycc_dir
+    pycc_dir="$(cd -- "$(dirname -- "${PYCC}")" && pwd)"
+    if [[ "$(basename -- "${pycc_dir}")" == "bin" ]]; then
+      export PYC_TOOLCHAIN_ROOT
+      PYC_TOOLCHAIN_ROOT="$(cd -- "${pycc_dir}/.." && pwd)"
+    fi
+  fi
+}
+
+pyc_record_best_pycc() {
+  local candidate="${1}"
+  local mtime=0
+  [[ -x "${candidate}" ]] || return 0
+  if mtime="$(stat -f %m "${candidate}" 2>/dev/null)"; then
+    :
+  elif mtime="$(stat -c %Y "${candidate}" 2>/dev/null)"; then
+    :
+  else
+    mtime=0
+  fi
+  if (( mtime > best_mtime )); then
+    best="${candidate}"
+    best_mtime="${mtime}"
+  fi
+}
+
 pyc_find_pycc() {
   if [[ -n "${PYCC:-}" && -x "${PYCC}" ]]; then
-    if root="$(pyc_toolchain_root 2>/dev/null)"; then
-      export PYC_TOOLCHAIN_ROOT="${root}"
-    fi
+    pyc_export_toolchain_root_for_pycc
     return 0
   fi
 
@@ -73,67 +160,31 @@ pyc_find_pycc() {
     fi
   fi
 
-  local candidates=(
-    # Preferred install-tree locations.
-    "${PYC_ROOT_DIR}/.pycircuit_out/toolchain/install/bin/pycc${exe_suffix}"
-    "${PYC_ROOT_DIR}/dist/pycircuit/bin/pycc${exe_suffix}"
-    # Legacy build-tree locations.
-    "${PYC_ROOT_DIR}/compiler/mlir/build2/bin/pycc${exe_suffix}"
-    "${PYC_ROOT_DIR}/build/bin/pycc${exe_suffix}"
-    "${PYC_ROOT_DIR}/compiler/mlir/build/bin/pycc${exe_suffix}"
-    "${PYC_ROOT_DIR}/build-top/bin/pycc${exe_suffix}"
-    # Also allow non-suffixed names in case the environment provides them.
-    "${PYC_ROOT_DIR}/.pycircuit_out/toolchain/install/bin/pycc"
-    "${PYC_ROOT_DIR}/dist/pycircuit/bin/pycc"
-    "${PYC_ROOT_DIR}/compiler/mlir/build2/bin/pycc"
-    "${PYC_ROOT_DIR}/build/bin/pycc"
-    "${PYC_ROOT_DIR}/compiler/mlir/build/bin/pycc"
-    "${PYC_ROOT_DIR}/build-top/bin/pycc"
-  )
-
   # Pick the newest executable among the common build locations. This avoids
   # accidentally grabbing an older `pycc` from a stale build directory.
   local best=""
   local best_mtime=0
-  for c in "${candidates[@]}"; do
-    if [[ -x "${c}" ]]; then
-      local mtime=0
-      if mtime="$(stat -f %m "${c}" 2>/dev/null)"; then
-        :
-      elif mtime="$(stat -c %Y "${c}" 2>/dev/null)"; then
-        :
-      else
-        mtime=0
-      fi
-      if (( mtime > best_mtime )); then
-        best="${c}"
-        best_mtime="${mtime}"
-      fi
-    fi
-  done
+  local c=""
+  while IFS= read -r c; do
+    pyc_record_best_pycc "${c}"
+  done < <(pyc_find_toolchain_pycc_candidates "${exe_suffix}")
   if [[ -n "${best}" ]]; then
     export PYCC="${best}"
-    if root="$(pyc_toolchain_root 2>/dev/null)"; then
-      export PYC_TOOLCHAIN_ROOT="${root}"
-    fi
+    pyc_export_toolchain_root_for_pycc
     return 0
   fi
 
   if command -v pycc >/dev/null 2>&1; then
     export PYCC
     PYCC="$(command -v pycc)"
-    if root="$(pyc_toolchain_root 2>/dev/null)"; then
-      export PYC_TOOLCHAIN_ROOT="${root}"
-    fi
+    pyc_export_toolchain_root_for_pycc
     return 0
   fi
 
   if command -v pycc.exe >/dev/null 2>&1; then
     export PYCC
     PYCC="$(command -v pycc.exe)"
-    if root="$(pyc_toolchain_root 2>/dev/null)"; then
-      export PYC_TOOLCHAIN_ROOT="${root}"
-    fi
+    pyc_export_toolchain_root_for_pycc
     return 0
   fi
 

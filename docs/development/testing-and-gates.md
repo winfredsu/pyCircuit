@@ -73,6 +73,37 @@ Use `docs/gates/README.md` for the directory contract and naming.
 - `pre-commit run --all-files` runs the full repo Python format/lint, markdown
   lint, YAML sanity, and pyCircuit API hygiene sweep.
 
+## Toolchain discovery for pycc-backed gates
+
+Do not use `command -v pycc` as the only check for example, simulation, Verilog,
+or C++ gates. The repo-supported discovery path is:
+
+```bash
+bash -lc 'source flows/scripts/lib.sh; pyc_find_pycc; echo "${PYCC}"'
+```
+
+This sets `PYCC` and, when possible, `PYC_TOOLCHAIN_ROOT`. It searches the
+current checkout first, then explicit `PYCC` / `PYC_TOOLCHAIN_ROOT`, and then
+known install/build locations. In OMX team worktrees it can also resolve the
+canonical leader checkout root from `OMX_TEAM_LEADER_CWD` or the
+`.omx/team/.../worktrees/...` path prefix, which lets agents find
+`~/projects/pyCircuit/.pycircuit_out/toolchain/install/bin/pycc` without copying
+toolchain files.
+
+If a change touches MLIR, codegen, runtime, or `pycc` itself, build and validate
+the toolchain from the current checkout before treating pycc-backed gates as
+merge evidence:
+
+```bash
+bash flows/scripts/pyc build
+bash -lc 'source flows/scripts/lib.sh; pyc_find_pycc; echo "${PYCC}"'
+```
+
+For docs/examples/testbench lanes that only need a pycc-backed observation,
+using the canonical leader checkout's staged `pycc` is acceptable when the gate
+evidence records the resolved `PYCC` path and no toolchain artifact is copied
+between worktrees.
+
 ## Notes on simulation lanes
 
 - `run_sims.sh` validates the normal simulation lane.

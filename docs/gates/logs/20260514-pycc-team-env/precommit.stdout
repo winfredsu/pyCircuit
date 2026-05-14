@@ -1,0 +1,9 @@
+$ uvx pre-commit run --files flows/scripts/lib.sh docs/development/testing-and-gates.md docs/development/v5-improvement-agent-workflows.md docs/gates/logs/20260514-pycc-team-env/summary.json
+check for merge conflicts................................................Passed
+check yaml...........................................(no files to check)Skipped
+fix end of files.........................................................Passed
+trim trailing whitespace.................................................Passed
+ruff.................................................(no files to check)Skipped
+black................................................(no files to check)Skipped
+markdownlint-cli2........................................................Passed
+pyCircuit API hygiene gate...............................................Passed

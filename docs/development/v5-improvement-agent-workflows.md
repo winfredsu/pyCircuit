@@ -101,6 +101,41 @@ agent 写同一文件。每个 lane agent 只负责一个方向，独立迭代�
    review lane 必须在下一轮实现前审查 evidence、scope、acceptance tests 和
    license/porting 风险。
 
+### pycc-backed Gates In Team Workers
+
+OMX team workers normally run from per-worker git worktrees under
+`.omx/team/<team>/worktrees/<worker>/`. Those worktrees do not contain the
+leader checkout's ignored build output directories, so a plain
+`command -v pycc` is not a valid readiness check for pycc-backed gates.
+
+When a lane needs Verilog/C++ generation, examples, or simulation evidence,
+agents should resolve `pycc` through the repository helper instead of testing
+`PATH` directly:
+
+```bash
+bash -lc 'source flows/scripts/lib.sh; pyc_find_pycc; echo "${PYCC}"'
+```
+
+`pyc_find_pycc` first checks the current worktree and explicit `PYCC` /
+`PYC_TOOLCHAIN_ROOT` values. For OMX team worktrees it may also use the
+canonical leader checkout root, such as `~/projects/pyCircuit`, via
+`OMX_TEAM_LEADER_CWD` or the `.omx/team/.../worktrees/...` path prefix. This
+locates the staged `pycc` without copying toolchain artifacts into worker
+worktrees.
+
+Conductor expectations:
+
+- Prefer setting `OMX_TEAM_LEADER_CWD` to the repository root when launching
+  long-running team waves.
+- For final pycc-backed proof, run the gate from the merged leader checkout or
+  from a worker worktree that has built its own toolchain with
+  `bash flows/scripts/pyc build`.
+- If `pyc_find_pycc` still fails, record the gate as blocked and include the
+  missing `PYCC` / `PYC_TOOLCHAIN_ROOT` state in the evidence log.
+- Do not copy `.so` files, staged toolchains, or generated artifacts between
+  worktrees. Rebuild in the current worktree when validating changes to MLIR,
+  codegen, runtime, or the `pycc` executable itself.
+
 ### RTL Source Intake Gate
 
 `rtl-porting` 的目的不是把外部 RTL 大量复制进仓库，而是用真实 RTL 暴露 V5

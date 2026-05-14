@@ -1,0 +1,33 @@
+{
+  "run_id": "20260514-pycc-team-env",
+  "change": "pycc discovery for OMX team worktrees",
+  "overall": "PASS",
+  "gates": [
+    {
+      "gate": "bash_syntax_and_current_pycc_discovery",
+      "exit_code": 0
+    },
+    {
+      "gate": "simulated_omx_worker_pycc_discovery",
+      "exit_code": 0
+    },
+    {
+      "gate": "precommit",
+      "exit_code": 0
+    },
+    {
+      "gate": "api_hygiene",
+      "exit_code": 0
+    },
+    {
+      "gate": "mkdocs",
+      "exit_code": 0
+    }
+  ],
+  "resolved_pycc": [
+    "PYCC=/Users/sufang/projects/pyCircuit/.pycircuit_out/toolchain/install/bin/pycc"
+  ],
+  "notes": [
+    "mkdocs was invoked through uvx because mkdocs is not installed on PATH in this shell."
+  ]
+}
