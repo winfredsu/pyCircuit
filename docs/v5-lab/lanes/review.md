@@ -1,11 +1,12 @@
 # Review Lane Log
 
-## Wave 002 — Ready/Valid FIFO Helper and Example
+## Wave 002 — Source Correlation
 
-- Reviewer: `worker-2`
-- Iteration note: `docs/v5-lab/iterations/002-review-ready-valid-fifo.md`
-- Proposal reviewed: `docs/v5-lab/proposals/ready-valid-fifo-helpers.md`
+- Reviewed: `docs/v5-lab/proposals/source-correlation.md`
+- Iteration note: `docs/v5-lab/iterations/002-review-source-correlation.md`
 - Verdict: split
-- Minimal PR slice: example-only V5 FIFO plus focused tests and generated-artifact observations before any helper API.
-- Required gates: source/license re-check, executable FIFO regressions, V5 subset tests, generated artifact inspection, and changed-file lint/docs gates.
-- Wave 003 handoff: schedule `codex/v5-ready-valid-fifo-example-tests`; defer helper API until prototype evidence proves the need.
+- Minimal PR slice: source-map sidecar schema plus named
+  `domain.cycle(..., name=...)` provenance.
+- Wave 003 handoff: keep balance registers, hierarchy, arithmetic temporaries,
+  timing-report ingestion, and CLI lookup as follow-up proposals after the schema
+  and named-register gate are proven.
