@@ -1,0 +1,2 @@
+$ bash flows/scripts/run_examples.sh
+SKIP: pycc not found on PATH; run_examples.sh requires pyc_find_pycc before example emit/pycc checks.

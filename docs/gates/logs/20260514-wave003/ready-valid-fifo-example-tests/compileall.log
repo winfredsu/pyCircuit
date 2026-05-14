@@ -1,0 +1,2 @@
+$ python -m compileall -q designs/examples/fifo_loopback/ready_valid_fifo.py tests/unit/test_ready_valid_fifo_example.py
+PASS

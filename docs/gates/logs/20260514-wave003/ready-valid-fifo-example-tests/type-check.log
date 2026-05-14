@@ -1,0 +1,2 @@
+$ uvx mypy designs/examples/fifo_loopback/ready_valid_fifo.py tests/unit/test_ready_valid_fifo_example.py --ignore-missing-imports
+Success: no issues found in 2 source files
