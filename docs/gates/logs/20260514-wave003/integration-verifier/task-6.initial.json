@@ -1,0 +1,16 @@
+{
+  "subject": "Final Wave 003 integration verifier refresh after task-5",
+  "description": "Final verifier refresh after task-5 completed. Update only docs/v5-lab/iterations/003-integration-verifier.md and docs/gates/logs/20260514-wave003/integration-verifier/ evidence as needed. Do not touch compiler/API/tests/examples.\n\nVerify from leader integrated HEAD: all Wave 003 lane outputs are present; task-5 final FIFO evidence is complete; source-correlation-map remains deferred; no third-party RTL import; no helper FIFO API/compiler internals/backend-only semantic fix; lane evidence paths exist; gates are recorded. Replace BLOCKED_PENDING_TASK_5 with final PASS or explicit residual risk. Run narrow docs/evidence gates (pre-commit changed verifier docs/evidence; API hygiene/mkdocs if feasible) and commit. Send final handoff: Changed files / Decision or contract impact / Gates run / Evidence path / Risks / Next handoff.",
+  "status": "in_progress",
+  "owner": "worker-4",
+  "requires_code_change": false,
+  "id": "6",
+  "depends_on": [],
+  "version": 2,
+  "created_at": "2026-05-14T05:32:30.358Z",
+  "claim": {
+    "owner": "worker-4",
+    "token": "84afdde7-f45a-4077-8bd8-c2d03d18ed01",
+    "leased_until": "2026-05-14T05:48:09.934Z"
+  }
+}
