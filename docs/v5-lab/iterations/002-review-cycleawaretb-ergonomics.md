@@ -84,6 +84,7 @@ diagnostics-only first slice, defer watch/history and timeline helpers, and keep
 existing testbench behavior backward-compatible.
 
 Review Handoff:
+
 - Verdict: accept
 - Blocking issues: none for the diagnostics-only first slice
 - Suggested edits: keep the Wave 003 PR limited to context labels/failure fields; document watch/history and timeline as follow-ups
