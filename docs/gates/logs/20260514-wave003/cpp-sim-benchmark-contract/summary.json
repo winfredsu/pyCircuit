@@ -7,7 +7,9 @@
     "mkdocs_build": "pass"
   },
   "notes": [
-    "mkdocs build required UV_OFFLINE=1 because direct PyPI fetch timed out in this environment.",
+    "Docs-only contract slice; no Python/TypeScript code changed, so focused unit/type gates are not applicable.",
+    "pre-commit was run through uvx because pre-commit is not installed as a direct shell command in this worker environment.",
+    "mkdocs build was run through uvx with UV_OFFLINE=1 to use the available cached MkDocs environment.",
     "All evidence artifacts are repo-relative and confined to docs/gates/logs/20260514-wave003/cpp-sim-benchmark-contract/."
   ]
 }
