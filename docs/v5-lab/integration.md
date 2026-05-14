@@ -50,3 +50,62 @@ changed=$(git diff --name-only -- docs/v5-lab)
 if [ -n "$changed" ]; then pre-commit run --files $changed; fi
 mkdocs build
 ```
+
+## PyCircuit V5 Improvement Lab Integration — Wave 002
+
+## Phase 2 Conductor Setup
+
+- `docs/v5-lab/claims.md` updated with `PHASE 2 READY` and docs-only ownership.
+- Four proposal-review workers assigned: CycleAwareTb ergonomics, ready/valid
+  FIFO, source correlation, and C++ sim performance.
+- Write boundary remained limited to `docs/v5-lab/`; no compiler/API/tests were
+  intentionally changed.
+
+## Review Handoff Summary
+
+| Proposal | Review status | Handoff path | Minimal PR slice |
+| --- | --- | --- | --- |
+| CycleAwareTb ergonomics | accepted/split | `docs/v5-lab/iterations/002-review-cycleawaretb-ergonomics.md` | `codex/v5-cycleawaretb-context-diagnostics`: context-label failure diagnostics only; defer watch/history and timeline. |
+| Ready/valid FIFO | split | `docs/v5-lab/iterations/002-review-ready-valid-fifo.md` | `codex/v5-ready-valid-fifo-example-tests`: independently written FIFO example/tests before any helper API. |
+| Source correlation | split | `docs/v5-lab/iterations/002-review-source-correlation.md` | `codex/v5-source-correlation-map`: opt-in schema plus named `domain.cycle(..., name=...)` provenance spike. |
+| C++ sim performance | revise/split | `docs/v5-lab/iterations/002-review-cpp-sim-performance.md` | `codex/v5-cpp-sim-benchmark-contract`: docs-only benchmark schema/evidence contract before runner or optimization. |
+
+## Cross-Lane Decisions
+
+1. **Implementation must be branch-per-proposal.** `pr-queue.md` now contains
+   four user-review candidates with distinct branch names, titles, non-goals,
+   gates, and evidence roots.
+2. **Diagnostics and source maps should align but not block each other.** The
+   first CycleAwareTb branch can carry labels as metadata; source-map IDs are a
+   later integration point, not a dependency.
+3. **FIFO stays example-first.** The RTL-porting proposal should produce
+   executable example/test evidence and generated-name observations before any
+   public helper API is accepted.
+4. **Performance work stays baseline-first.** The C++ lane must land a benchmark
+   contract/schema before runner implementation and before any optimization.
+
+## Lifecycle Notes
+
+- Worker source-correlation review output was integrated, but task lifecycle
+  recorded a stale failed status after a mistaken interpretation that docs-only
+  edits were forbidden. The conductor treats this as an acknowledged failure path
+  because the required `002-review-source-correlation.md` artifact is present and
+  incorporated in `pr-queue.md`.
+- Worker ready/valid lifecycle was reconciled by conductor after claim/delegation
+  bookkeeping rejected the worker's own completion transition; the artifact was
+  committed and integrated.
+- Worker C++ review originally reported read-only; conductor materialized the
+  required iteration artifact from the mailbox handoff and queue decision.
+
+## Wave 003 Recommendation
+
+Proceed only after user review of `docs/v5-lab/pr-queue.md`. Recommended order:
+
+1. `codex/v5-cycleawaretb-context-diagnostics`
+2. `codex/v5-ready-valid-fifo-example-tests`
+3. `codex/v5-cpp-sim-benchmark-contract`
+4. `codex/v5-source-correlation-map`
+
+The source-correlation branch remains high-value but higher semantic risk, so it
+should start after the lower-risk diagnostics/example/contract branches unless a
+specific debug-provenance need becomes urgent.
