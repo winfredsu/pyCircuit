@@ -11,3 +11,12 @@ uv run --extra dev python3 -m compileall -q compiler/frontend/pycircuit
 uv run --extra dev --extra docs pre-commit run --files docs/v5-lab/iterations/003-integration-verifier.md docs/gates/logs/20260514-wave003/integration-verifier/completion-audit.md docs/gates/logs/20260514-wave003/integration-verifier/commands.txt
 uv run --extra docs mkdocs build
 uv run --extra dev python3 flows/tools/check_api_hygiene.py compiler/frontend/pycircuit designs/examples docs README.md
+# Final integration audit after task 5 completion
+python3 - <<'PY'  # inspect task statuses/results
+PY
+find docs/v5-lab -path '*source-correlation*' -o -type f -print
+uv run --extra dev pytest -q tests/unit -m unit
+uv run --extra dev python3 -m compileall -q compiler/frontend/pycircuit designs/examples tests/unit
+uv run --extra dev python3 flows/tools/check_api_hygiene.py compiler/frontend/pycircuit designs/examples docs README.md
+uv run --extra docs mkdocs build
+uv run --extra dev --extra docs pre-commit run --files docs/v5-lab/iterations/003-integration-verifier.md docs/gates/logs/20260514-wave003/integration-verifier/completion-audit.md docs/gates/logs/20260514-wave003/integration-verifier/final-audit.md docs/gates/logs/20260514-wave003/integration-verifier/commands.txt
