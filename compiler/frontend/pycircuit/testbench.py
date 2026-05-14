@@ -110,6 +110,7 @@ def testbench_payload_from_tb(
                 "at": int(e.at),
                 "phase": str(e.phase),
                 "msg": (None if e.msg is None else str(e.msg)),
+                "labels": [[str(k), str(v)] for k, v in e.labels],
             }
             for e in tb.expects
         ),

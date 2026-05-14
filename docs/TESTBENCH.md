@@ -37,9 +37,15 @@ def tb(t: Tb):
 - `t.clock(port, half_period_steps=..., phase_steps=..., start_high=...)`
 - `t.reset(port, cycles_asserted=..., cycles_deasserted=...)`
 - `t.drive(port, value, at=cycle)`
-- `t.expect(port, value, at=cycle, phase="pre"|"post", msg=None)`
+- `t.expect(port, value, at=cycle, phase="pre"|"post", msg=None,
+  labels=None)`
 - `t.timeout(cycles)`
 - `t.finish(at=cycle)`
 - `t.print(fmt, at=cycle, ports=[...])`
 - `t.print_every(fmt, start=0, every=1, ports=[...])`
 - `t.sva_assert(expr, clock=..., reset=..., name=..., msg=...)`
+
+`expect(..., labels={...})` attaches diagnostic-only context to failure output.
+Generated testbenches preserve an explicit `msg=` and report stable fields for
+the failing port, cycle, phase, labels, actual value, and expected value. Labels
+do not change simulation scheduling or expected values.

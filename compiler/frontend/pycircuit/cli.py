@@ -488,6 +488,35 @@ def _top_iface_from_manifest(manifest: Mapping[str, Any]) -> _TopIface:
     )
 
 
+def _expect_labels_text(labels: tuple[tuple[str, str], ...]) -> str:
+    if not labels:
+        return "{}"
+    return "{" + ",".join(f"{key}={value}" for key, value in labels) + "}"
+
+
+def _expect_diagnostic_text(
+    *,
+    raw_port: str,
+    cycle: int,
+    phase: str,
+    labels: tuple[tuple[str, str], ...],
+    msg: str | None,
+) -> str:
+    fields = [
+        f"port={raw_port}",
+        f"cycle={int(cycle)}",
+        f"phase={phase}",
+        f"labels={_expect_labels_text(labels)}",
+    ]
+    if msg is not None:
+        fields.append(f"msg={msg}")
+    return " ".join(fields)
+
+
+def _sv_string(s: str) -> str:
+    return json.dumps(str(s).replace("%", "%%"), ensure_ascii=False)
+
+
 def _module_paths_from_manifest(
     manifest: Mapping[str, Any], *, out_dir: Path
 ) -> dict[str, Path]:
@@ -538,8 +567,12 @@ def _render_tb_cpp(
 
     # Group actions by cycle for compact emission.
     drives_by: dict[int, list[tuple[str, int | bool, str]]] = {}
-    expects_pre_by: dict[int, list[tuple[str, int | bool, str | None, str]]] = {}
-    expects_post_by: dict[int, list[tuple[str, int | bool, str | None, str]]] = {}
+    expects_pre_by: dict[
+        int, list[tuple[str, str, int | bool, str | None, tuple[tuple[str, str], ...], str]]
+    ] = {}
+    expects_post_by: dict[
+        int, list[tuple[str, str, int | bool, str | None, tuple[tuple[str, str], ...], str]]
+    ] = {}
     prints_at: dict[int, list[tuple[str, list[tuple[str, str, int]]]]] = {}
     prints_every: list[tuple[str, int, int, list[tuple[str, str, int]]]] = []
     for d in t.drives:
@@ -550,10 +583,18 @@ def _render_tb_cpp(
     for e in t.expects:
         _dir, sn, ty = iface.resolve(e.port)
         ph = str(getattr(e, "phase", "post")).strip().lower()
+        row = (
+            str(e.port),
+            sn,
+            e.value,
+            e.msg,
+            tuple(getattr(e, "labels", ())),
+            ty,
+        )
         if ph == "pre":
-            expects_pre_by.setdefault(int(e.at), []).append((sn, e.value, e.msg, ty))
+            expects_pre_by.setdefault(int(e.at), []).append(row)
         else:
-            expects_post_by.setdefault(int(e.at), []).append((sn, e.value, e.msg, ty))
+            expects_post_by.setdefault(int(e.at), []).append(row)
 
     for p in getattr(t, "prints", []):
         fmt = str(p.fmt)
@@ -832,22 +873,33 @@ def _render_tb_cpp(
         lines.append("    switch (cyc) {\n")
         for cyc in sorted(expects_pre_by.keys()):
             lines.append(f"    case {cyc}: {{\n")
-            for sn, val, msg, ty in expects_pre_by[cyc]:
+            for raw, sn, val, msg, labels, ty in expects_pre_by[cyc]:
                 w = _as_int_width(ty)
                 vv = mask_value(val, w)
                 exp = wire_literal(val, w)
-                m = msg if msg is not None else f"{sn} mismatch"
+                m = _expect_diagnostic_text(
+                    raw_port=raw,
+                    cycle=cyc,
+                    phase="pre",
+                    labels=labels,
+                    msg=msg,
+                )
                 if w == 1:
+                    prefix = json.dumps(f"ERROR(pre): {m} actual=")
                     lines.append(
-                        f'      if (dut.{sn}.value() != {vv}u) {{ std::cerr << "ERROR(pre): {m}: got=" << dut.{sn}.value() << " exp={vv}\\n"; return 1; }}\n'
+                        f"      if (dut.{sn}.value() != {vv}u) {{ std::cerr << {prefix} << dut.{sn}.value() << \" expected={vv}\\n\"; return 1; }}\n"
                     )
                 elif w <= 64:
+                    prefix = json.dumps(f"ERROR(pre): {m} actual=0x")
                     lines.append(
-                        f'      if (dut.{sn}.value() != {vv}u) {{ std::cerr << "ERROR(pre): {m}: got=0x" << std::hex << dut.{sn}.value() << " exp=0x{vv:x}" << std::dec << "\\n"; return 1; }}\n'
+                        f"      if (dut.{sn}.value() != {vv}u) {{ std::cerr << {prefix} << std::hex << dut.{sn}.value() << \" expected=0x{vv:x}\" << std::dec << \"\\n\"; return 1; }}\n"
                     )
                 else:
+                    prefix = json.dumps(
+                        f"ERROR(pre): {m} actual=<wide> expected=<wide>"
+                    )
                     lines.append(
-                        f'      if (!(dut.{sn} == {exp})) {{ std::cerr << "ERROR(pre): {m}\\n"; return 1; }}\n'
+                        f"      if (!(dut.{sn} == {exp})) {{ std::cerr << {prefix} << \"\\n\"; return 1; }}\n"
                     )
             lines.append("      break; }\n")
         lines.append("    default: break;\n")
@@ -879,23 +931,32 @@ def _render_tb_cpp(
         lines.append("    switch (cyc) {\n")
         for cyc in sorted(expects_post_by.keys()):
             lines.append(f"    case {cyc}: {{\n")
-            for sn, val, msg, ty in expects_post_by[cyc]:
+            for raw, sn, val, msg, labels, ty in expects_post_by[cyc]:
                 w = _as_int_width(ty)
                 vv = mask_value(val, w)
                 exp = wire_literal(val, w)
-                m = msg if msg is not None else f"{sn} mismatch"
+                m = _expect_diagnostic_text(
+                    raw_port=raw,
+                    cycle=cyc,
+                    phase="post",
+                    labels=labels,
+                    msg=msg,
+                )
                 # Print decimal for i1, hex for <=64 wider signals.
                 if w == 1:
+                    prefix = json.dumps(f"ERROR: {m} actual=")
                     lines.append(
-                        f'      if (dut.{sn}.value() != {vv}u) {{ std::cerr << "ERROR: {m}: got=" << dut.{sn}.value() << " exp={vv}\\n"; return 1; }}\n'
+                        f"      if (dut.{sn}.value() != {vv}u) {{ std::cerr << {prefix} << dut.{sn}.value() << \" expected={vv}\\n\"; return 1; }}\n"
                     )
                 elif w <= 64:
+                    prefix = json.dumps(f"ERROR: {m} actual=0x")
                     lines.append(
-                        f'      if (dut.{sn}.value() != {vv}u) {{ std::cerr << "ERROR: {m}: got=0x" << std::hex << dut.{sn}.value() << " exp=0x{vv:x}" << std::dec << "\\n"; return 1; }}\n'
+                        f"      if (dut.{sn}.value() != {vv}u) {{ std::cerr << {prefix} << std::hex << dut.{sn}.value() << \" expected=0x{vv:x}\" << std::dec << \"\\n\"; return 1; }}\n"
                     )
                 else:
+                    prefix = json.dumps(f"ERROR: {m} actual=<wide> expected=<wide>")
                     lines.append(
-                        f'      if (!(dut.{sn} == {exp})) {{ std::cerr << "ERROR: {m}\\n"; return 1; }}\n'
+                        f"      if (!(dut.{sn} == {exp})) {{ std::cerr << {prefix} << \"\\n\"; return 1; }}\n"
                     )
             lines.append("      break; }\n")
         lines.append("    default: break;\n")
@@ -984,8 +1045,12 @@ def _render_tb_sv(
         return f"  logic [{w - 1}:0] {name};\n"
 
     drives_by: dict[int, list[tuple[str, int | bool, str]]] = {}
-    expects_pre_by: dict[int, list[tuple[str, int | bool, str | None, str]]] = {}
-    expects_post_by: dict[int, list[tuple[str, int | bool, str | None, str]]] = {}
+    expects_pre_by: dict[
+        int, list[tuple[str, str, int | bool, str | None, tuple[tuple[str, str], ...], str]]
+    ] = {}
+    expects_post_by: dict[
+        int, list[tuple[str, str, int | bool, str | None, tuple[tuple[str, str], ...], str]]
+    ] = {}
     prints_at: dict[int, list[tuple[str, list[str]]]] = {}
     prints_every: list[tuple[str, int, int, list[str]]] = []
     for d in t.drives:
@@ -996,10 +1061,18 @@ def _render_tb_sv(
     for e in t.expects:
         _dir, sn, ty = iface.resolve(e.port)
         ph = str(getattr(e, "phase", "post")).strip().lower()
+        row = (
+            str(e.port),
+            sn,
+            e.value,
+            e.msg,
+            tuple(getattr(e, "labels", ())),
+            ty,
+        )
         if ph == "pre":
-            expects_pre_by.setdefault(int(e.at), []).append((sn, e.value, e.msg, ty))
+            expects_pre_by.setdefault(int(e.at), []).append(row)
         else:
-            expects_post_by.setdefault(int(e.at), []).append((sn, e.value, e.msg, ty))
+            expects_post_by.setdefault(int(e.at), []).append(row)
     for p in getattr(t, "prints", []):
         fmt = str(p.fmt)
         ports = []
@@ -1210,11 +1283,19 @@ def _render_tb_sv(
         lines.append("      unique case (cyc)\n")
         for cyc in sorted(expects_pre_by.keys()):
             lines.append(f"        {cyc}: begin\n")
-            for sn, val, msg, ty in expects_pre_by[cyc]:
+            for raw, sn, val, msg, labels, ty in expects_pre_by[cyc]:
                 w = _as_int_width(ty)
-                m = msg if msg is not None else f"{sn} mismatch"
+                vv = int(val) & ((1 << w) - 1)
+                m = _expect_diagnostic_text(
+                    raw_port=raw,
+                    cycle=cyc,
+                    phase="pre",
+                    labels=labels,
+                    msg=msg,
+                )
+                fmt = _sv_string(f"PRE: {m} actual=0x%0h expected=0x{vv:x}")
                 lines.append(
-                    f'          if ({sn} !== {sv_lit(w, val)}) $fatal(1, "PRE: {m}");\n'
+                    f"          if ({sn} !== {sv_lit(w, val)}) $fatal(1, {fmt}, {sn});\n"
                 )
             lines.append("        end\n")
         lines.append("        default: begin end\n")
@@ -1234,11 +1315,19 @@ def _render_tb_sv(
         lines.append("      unique case (cyc)\n")
         for cyc in sorted(expects_post_by.keys()):
             lines.append(f"        {cyc}: begin\n")
-            for sn, val, msg, ty in expects_post_by[cyc]:
+            for raw, sn, val, msg, labels, ty in expects_post_by[cyc]:
                 w = _as_int_width(ty)
-                m = msg if msg is not None else f"{sn} mismatch"
+                vv = int(val) & ((1 << w) - 1)
+                m = _expect_diagnostic_text(
+                    raw_port=raw,
+                    cycle=cyc,
+                    phase="post",
+                    labels=labels,
+                    msg=msg,
+                )
+                fmt = _sv_string(f"{m} actual=0x%0h expected=0x{vv:x}")
                 lines.append(
-                    f'          if ({sn} !== {sv_lit(w, val)}) $fatal(1, "{m}");\n'
+                    f"          if ({sn} !== {sv_lit(w, val)}) $fatal(1, {fmt}, {sn});\n"
                 )
             lines.append("        end\n")
         lines.append("        default: begin end\n")

@@ -19,7 +19,7 @@ from typing import Any, TypeVar, Union
 from .dsl import Signal
 from .hw import Circuit, ClockDomain, Reg, Wire
 from .literals import LiteralValue, infer_literal_width
-from .tb import Tb as _Tb
+from .tb import Tb as _Tb, _normalize_expect_labels
 
 F = TypeVar("F", bound=Callable[..., Any])
 
@@ -1468,15 +1468,16 @@ class CycleAwareTb:
             tb.finish()
     """
 
-    __slots__ = ("_t", "_cycle")
+    __slots__ = ("_t", "_cycle", "_label_stack")
 
     def __init__(self, t: _Tb) -> None:
         if not isinstance(t, _Tb):
             raise TypeError(
                 f"CycleAwareTb requires a Tb instance, got {type(t).__name__}"
-            )
+        )
         self._t = t
         self._cycle = 0
+        self._label_stack: list[tuple[tuple[str, str], ...]] = []
 
     # -- cycle management ---------------------------------------------------
 
@@ -1500,6 +1501,27 @@ class CycleAwareTb:
     def timeout(self, cycles: int) -> None:
         self._t.timeout(cycles)
 
+    @contextmanager
+    def context(self, **labels: Any) -> Iterator[None]:
+        """Attach diagnostic labels to nested cycle-aware expectations."""
+        norm = _normalize_expect_labels(labels)
+        self._label_stack.append(norm)
+        try:
+            yield
+        finally:
+            self._label_stack.pop()
+
+    def _expect_labels(
+        self, labels: Mapping[str, Any] | None
+    ) -> tuple[tuple[str, str], ...]:
+        merged: dict[str, str] = {}
+        for frame in self._label_stack:
+            for key, value in frame:
+                merged[key] = value
+        for key, value in _normalize_expect_labels(labels):
+            merged[key] = value
+        return tuple(merged.items())
+
     # -- stimulus / check (cycle-relative) ----------------------------------
 
     def drive(self, port: str, value: int | bool) -> None:
@@ -1513,9 +1535,17 @@ class CycleAwareTb:
         *,
         phase: str = "post",
         msg: str | None = None,
+        labels: Mapping[str, Any] | None = None,
     ) -> None:
         """Check *port* at the current cycle."""
-        self._t.expect(port, value, at=self._cycle, phase=phase, msg=msg)
+        self._t.expect(
+            port,
+            value,
+            at=self._cycle,
+            phase=phase,
+            msg=msg,
+            labels=dict(self._expect_labels(labels)),
+        )
 
     def finish(self, *, at: int | None = None) -> None:
         """End the simulation at the current cycle (or at an explicit cycle)."""

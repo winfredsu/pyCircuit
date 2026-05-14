@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Any, Iterable
 
@@ -29,6 +30,20 @@ def _unique_names(raw: Iterable[str]) -> list[str]:
         used[base] = n
         out.append(base if n == 1 else f"{base}_{n}")
     return out
+
+
+def _normalize_expect_labels(
+    labels: Mapping[str, object] | None,
+) -> tuple[tuple[str, str], ...]:
+    if labels is None:
+        return ()
+    out: list[tuple[str, str]] = []
+    for key, value in labels.items():
+        k = str(key).strip()
+        if not k:
+            raise TbError("expect label keys must be non-empty")
+        out.append((k, str(value)))
+    return tuple(out)
 
 
 class SvaExpr:
@@ -148,6 +163,7 @@ class Expect:
     at: int
     phase: str = "post"
     msg: str | None = None
+    labels: tuple[tuple[str, str], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -233,6 +249,7 @@ class Tb:
         at: int,
         phase: str = "post",
         msg: str | None = None,
+        labels: Mapping[str, object] | None = None,
     ) -> None:
         p = str(port).strip()
         if not p:
@@ -245,7 +262,16 @@ class Tb:
         ph = str(phase).strip().lower()
         if ph not in {"pre", "post"}:
             raise TbError("expect phase must be 'pre' or 'post'")
-        self.expects.append(Expect(port=p, value=value, at=cyc, phase=ph, msg=(None if msg is None else str(msg))))
+        self.expects.append(
+            Expect(
+                port=p,
+                value=value,
+                at=cyc,
+                phase=ph,
+                msg=(None if msg is None else str(msg)),
+                labels=_normalize_expect_labels(labels),
+            )
+        )
 
     def timeout(self, cycles: int) -> None:
         t = int(cycles)
