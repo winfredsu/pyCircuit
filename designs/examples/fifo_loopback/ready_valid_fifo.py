@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import sys
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable, NamedTuple
+from typing import NamedTuple
 
 from pycircuit import (
     CycleAwareCircuit,
@@ -173,7 +175,11 @@ def build(
     pass_consumed = pass_read & read_fire
     count_inc = (count + one2)[0:2]
     count_dec = (count - one2)[0:2]
-    next_count = zero2 if clear else (count_inc if push_only else (count_dec if pop_only else count))
+    next_count = (
+        zero2
+        if clear
+        else (count_inc if push_only else (count_dec if pop_only else count))
+    )
 
     count_is_zero = count == zero2
     count_is_one = count == one2
@@ -189,7 +195,9 @@ def build(
         else (data1 if simultaneous_count_two else data0)
     )
     hold_or_push_data0 = wdata if pushed_empty else data0
-    next_data0 = zero_data if clear else (pop_data0 if read_fire else hold_or_push_data0)
+    next_data0 = (
+        zero_data if clear else (pop_data0 if read_fire else hold_or_push_data0)
+    )
     next_data1 = (
         zero_data
         if clear
@@ -209,4 +217,5 @@ build.__pycircuit_name__ = "ready_valid_fifo"
 
 
 if __name__ == "__main__":
-    print(compile_cycle_aware(build, name="ready_valid_fifo").emit_mlir())
+    sys.stdout.write(compile_cycle_aware(build, name="ready_valid_fifo").emit_mlir())
+    sys.stdout.write("\n")
