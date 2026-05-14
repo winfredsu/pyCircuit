@@ -269,6 +269,25 @@
       "ended_at": "2026-05-14T05:33:56Z"
     },
     {
+      "gate": "task6_precommit_rerun",
+      "command": [
+        "uv",
+        "run",
+        "--extra",
+        "dev",
+        "--extra",
+        "docs",
+        "pre-commit",
+        "run",
+        "--files",
+        "docs/v5-lab/iterations/003-integration-verifier.md",
+        "docs/gates/logs/20260514-wave003/integration-verifier/task-6.initial.json",
+        "docs/gates/logs/20260514-wave003/integration-verifier/task-6-refresh.md",
+        "docs/gates/logs/20260514-wave003/integration-verifier/commands.txt"
+      ],
+      "exit_code": 0
+    },
+    {
       "gate": "unit_subset.final",
       "command": [
         "uv",
@@ -286,5 +305,8 @@
       "ended_at": "2026-05-14T05:31:12Z"
     }
   ],
-  "overall": "FAIL"
+  "overall": "PASS",
+  "notes": [
+    "task6_precommit failed once because end-of-file-fixer added newline to task-6.initial.json; task6_precommit_rerun passed."
+  ]
 }
