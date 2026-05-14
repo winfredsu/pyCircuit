@@ -2,7 +2,30 @@
 
 Lane: testbench-ergonomics
 Wave: 001
-Status: draft for review
+Status: reviewed in Wave 002; accepted for a diagnostics-only first slice
+
+## Wave 002 review decision
+
+Review verdict: **accept, split for implementation**. The first PR should land
+only context-label diagnostics for `CycleAwareTb.expect` failure output.
+`watch`/history and tabular `timeline` sugar remain valid follow-ups, but they
+are too broad for the first branch because they add payload retention and a new
+stimulus-authoring surface on top of the failure-message contract.
+
+First accepted slice:
+
+- preserve existing `tb.expect(..., msg=...)` behavior;
+- add labels/context metadata to expectation diagnostics without changing
+  simulation semantics;
+- test stable fields (`port`, expected/actual value, cycle, phase, labels)
+  rather than exact backend line formatting;
+- document the accepted diagnostics workflow after API review.
+
+Deferred slices:
+
+- bounded watch/history output after labels have a stable failure contract;
+- tabular timeline helper after emitted operation equivalence can be tested;
+- domain-aware/multi-clock labeling after the context shape is validated.
 
 ## Problem
 
