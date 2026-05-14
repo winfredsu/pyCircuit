@@ -31,8 +31,10 @@ Command logs in this directory:
 - `focused-pytest.log`
 - `unit-subset.log`
 - `compileall.log`
+- `type-check.log`
 - `api-hygiene.log`
 - `precommit-files.log`
 - `mkdocs-build.log`
+- `examples-subset.log`
 - `source-license-recheck.log`
 - `generated-artifacts.log`

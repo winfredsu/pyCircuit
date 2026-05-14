@@ -213,7 +213,7 @@ def build(
     count <<= next_count
 
 
-setattr(build, "__pycircuit_name__", "ready_valid_fifo")
+build.__pycircuit_name__ = "ready_valid_fifo"  # type: ignore[attr-defined]
 
 
 if __name__ == "__main__":
