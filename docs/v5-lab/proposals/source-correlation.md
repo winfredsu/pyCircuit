@@ -1,5 +1,25 @@
 # Source Correlation For Generated Verilog
 
+## Wave 002 Review Decision
+
+Review verdict: **split**.
+
+The proposal is well grounded and should remain the umbrella direction for V5
+debug provenance, but the first PR should be smaller than the full Python →
+MLIR → Verilog lookup story. Wave 002 should accept only a gate-first spike:
+
+- define the `source_map.json` sidecar schema and opt-in emission contract;
+- capture provenance for explicit named `domain.cycle(..., name=...)`
+  registers in eager V5;
+- thread enough metadata to correlate Python file/line/name, V5 domain/cycle,
+  MLIR `pyc.name`, and the generated artifact anchor available in the chosen
+  emission path;
+- add regression coverage for the named-cycle slice.
+
+Auto balance registers, hierarchy callsites, arithmetic temporaries, CLI lookup,
+and timing-report ingestion should stay in follow-up slices unless the first
+schema proves too weak to represent them.
+
 ## User Scenario
 
 A V5 user runs synthesis, timing analysis, or waveform debug on generated
@@ -109,28 +129,32 @@ stable.
 
 ## Minimal Implementation Path
 
-1. Add internal provenance metadata to `CycleAwareSignal`/wire-producing helpers
-   without changing public API semantics.
-2. Capture source locations at selected eager V5 public API boundaries using
-   Python frame inspection, starting with `CycleAwareDomain.cycle()`.
-3. Extend `CycleAwareDomain.delay_to()` to record balance reason metadata:
-   source signal, from cycle, to cycle, and delta.
-4. Thread metadata into MLIR attributes next to existing `pyc.name`.
-5. Add backend or frontend source-map JSON emission behind an opt-in flag.
-6. Add tests before broadening to arithmetic temporaries and hierarchy.
+1. Define the sidecar schema version and opt-in emission location for the first
+   PR without changing generated RTL by default.
+2. Capture source locations at the eager `CycleAwareDomain.cycle()` public API
+   boundary for explicit named registers only.
+3. Thread metadata into MLIR attributes next to existing `pyc.name` for that
+   named-register slice.
+4. Emit a minimal `source_map.json` entry containing stable logical ID,
+   Python file/line/name, V5 domain/cycle, MLIR symbol/op/name, and the
+   available generated artifact anchor.
+5. Add tests for the named-register slice before broadening to balance
+   registers, arithmetic temporaries, hierarchy, or CLI lookup.
 
 ## Acceptance Tests
 
-- Compile a small eager V5 design and assert the source map contains entries for
-  input `x`, output `z`, and named register `pipe_reg`.
-- Verify `pipe_reg` maps to a Python file/line/name, MLIR `pyc.name`, and
-  generated Verilog net name.
-- Verify `_v5_bal_1` maps to `kind = balance_register`, `source_signal = x`,
-  `from_cycle = 0`, `to_cycle = 1`, and `delta = 1`.
-- Compile a hierarchical design and verify a `domain.call()` instance entry maps
-  parent callsite, child module symbol, and instance name.
-- Re-run after a non-semantic Python edit outside the relevant expression and
-  assert stable logical IDs for the same logical objects.
+- First PR:
+  - Compile a small eager V5 design and assert the source map contains a named
+    `domain.cycle()` register entry for `pipe_reg`.
+  - Verify `pipe_reg` maps to a Python file/line/name, V5 domain/cycle, MLIR
+    `pyc.name`, and the generated artifact anchor emitted by the opt-in path.
+  - Re-run after a non-semantic Python edit outside the relevant expression and
+    assert the logical ID for `pipe_reg` remains stable.
+- Follow-up PRs:
+  - Verify `_v5_bal_1` maps to `kind = balance_register`, `source_signal = x`,
+    `from_cycle = 0`, `to_cycle = 1`, and `delta = 1`.
+  - Compile a hierarchical design and verify a `domain.call()` instance entry
+    maps parent callsite, child module symbol, and instance name.
 
 ## Risks And Non-goals
 
@@ -140,8 +164,11 @@ Risks:
   generated functions, or interactive sessions.
 - Stable logical IDs need a reviewed contract to avoid churn in downstream debug
   tools.
-- Metadata threading crosses frontend, MLIR, and backend boundaries, so the first
-  PR should be intentionally small.
+- Metadata threading crosses frontend, MLIR, and backend boundaries; the first
+  PR must choose one opt-in emission path and avoid promising full Verilog net
+  lookup until backend anchoring is proven.
+- MLIR attributes should carry debug metadata only and must not become a hidden
+  semantic dependency for cycle alignment or lowering legality.
 
 Non-goals:
 
@@ -149,3 +176,5 @@ Non-goals:
 - Do not change cycle-balancing semantics.
 - Do not require Verilog comments for machine-readable correlation.
 - Do not implement broad timing-report ingestion in the first source-map PR.
+- Do not include auto balance, hierarchy, arithmetic temporaries, or CLI lookup
+  in the first PR unless they are required to validate the schema.
