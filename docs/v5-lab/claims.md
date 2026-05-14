@@ -1,81 +1,58 @@
 # PyCircuit V5 Improvement Lab Claims
 
-## Wave 002 Status
+## Wave 003 Status
 
-PHASE 2 READY: proposal review and PR queue slicing may begin.
+PHASE 3 READY: implementation slice work may begin after this claims file is
+committed and the OMX team is launched.
+
+Run ID: `20260514-wave003`
 
 ## Scope
 
-Wave 002 is docs-only and limited to the current pyc5/V5 authoring surface. The
-wave reviews Wave 001 proposals and turns accepted/revision-ready suggestions
-into narrow Wave 003 branch/PR candidates for user review.
+Wave 003 implements the first three user-review candidates from
+`docs/v5-lab/pr-queue.md` and assigns one verifier/integration lane. The
+source-correlation candidate is explicitly deferred to a later wave.
 
-## Hard Write Boundary
+## Global Rules
 
-Allowed repository writes are limited to `docs/v5-lab/` proposal, backlog,
-integration, PR-queue, claims, lane review, and iteration review files. Workers
-must not edit:
-
-- `compiler/`
-- `tests/`
-- `designs/`
-- `flows/`
-- `README.md`
-- generated artifacts outside `docs/v5-lab/`
-
-Shared implementation/code changes are out of scope. If a worker believes code
-or tests are needed, it must record a Wave 003 handoff only.
-
-## Conductor-Owned Files
-
-Only the leader/conductor applies final edits to:
-
-- `docs/v5-lab/claims.md`
-- `docs/v5-lab/backlog.md`
-- `docs/v5-lab/integration.md`
-- `docs/v5-lab/pr-queue.md`
-
-Workers may propose exact text for those files in their handoff, but should not
-edit them unless explicitly delegated by the conductor.
+- Follow `AGENTS.md`, `docs/development/testing-and-gates.md`, and
+  `docs/development/review-and-merge.md`.
+- Identify affected decision IDs or contracts before changing files.
+- Add or update tests before/with semantic behavior changes.
+- Keep each lane scoped to its assigned branch candidate; do not combine
+  unrelated proposals.
+- Do not implement `codex/v5-source-correlation-map` in this wave.
+- Do not import third-party RTL source. The OpenTitan FIFO remains study evidence
+  only unless a separate source/legal review is approved.
+- Commit worker changes before marking tasks complete.
+- Each worker report must end with: Changed files / Decision or contract impact /
+  Gates run / Evidence path / Risks / Next handoff.
 
 ## Worker Ownership
 
-| Worker | Lane review topic | Primary proposal | Allowed worker-owned outputs |
+| Worker | Slice | Primary files | Required gates/evidence |
 | --- | --- | --- | --- |
-| worker-1 | testbench ergonomics | `docs/v5-lab/proposals/cycleawaretb-ergonomics.md` | proposal-focused edits if needed; `docs/v5-lab/iterations/002-review-cycleawaretb-ergonomics.md`; optional append/update to `docs/v5-lab/lanes/review.md` |
-| worker-2 | RTL/FIFO slicing | `docs/v5-lab/proposals/ready-valid-fifo-helpers.md` | proposal-focused edits if needed; `docs/v5-lab/iterations/002-review-ready-valid-fifo.md`; optional append/update to `docs/v5-lab/lanes/review.md` |
-| worker-3 | source correlation slicing | `docs/v5-lab/proposals/source-correlation.md` | proposal-focused edits if needed; `docs/v5-lab/iterations/002-review-source-correlation.md`; optional append/update to `docs/v5-lab/lanes/review.md` |
-| worker-4 | C++ sim perf slicing | `docs/v5-lab/proposals/cpp-sim-performance.md` and `docs/v5-lab/benchmarks.md` | proposal-focused edits if needed; `docs/v5-lab/iterations/002-review-cpp-sim-performance.md`; optional append/update to `docs/v5-lab/lanes/review.md` |
-
-If workers update `docs/v5-lab/lanes/review.md`, they must append a clearly
-scoped section for their assigned proposal to reduce merge conflicts.
-
-## Required Review Output Shape
-
-Each worker must end its iteration note and leader mailbox report with:
-
-- Review verdict: accept / revise / split / reject
-- Minimal PR slice
-- Required gates
-- Risks
-- Wave 003 handoff
-
-## Acceptance Criteria
-
-Wave 002 is complete when:
-
-1. Each of the four proposal reviews has a review iteration note.
-2. Each review includes the required output shape.
-3. The conductor updates `backlog.md`, `integration.md`, and `pr-queue.md` based
-   on accepted/revision-ready slices.
-4. `pr-queue.md` contains only user-review-ready local branch/PR candidates; if
-   any proposal is not ready, it is explicitly marked for revision rather than
-   queued for implementation.
-5. Changed docs pass docs-only gates: `pre-commit run --files ...`, API hygiene
-   as included in pre-commit, and `mkdocs build`.
+| worker-1 | `codex/v5-cycleawaretb-context-diagnostics` | `compiler/frontend/pycircuit/v5.py`; `compiler/frontend/pycircuit/tb.py` only if needed; focused tests under `tests/`; docs for accepted API | pre-commit on changed files; focused unit tests; API hygiene; docs build if docs changed; evidence under `docs/gates/logs/20260514-wave003/cycleawaretb-context-diagnostics/` |
+| worker-2 | `codex/v5-ready-valid-fifo-example-tests` | `designs/examples/` and/or `tests/` for an independently written tiny FIFO example/tests; docs observations under `docs/v5-lab/` if needed | source/license re-check; new FIFO tests; closest V5 subset; generated artifact observation if feasible; pre-commit; docs build if docs changed; evidence under `docs/gates/logs/20260514-wave003/ready-valid-fifo-example-tests/` |
+| worker-3 | `codex/v5-cpp-sim-benchmark-contract` | `docs/v5-lab/benchmarks.md`; `docs/v5-lab/proposals/cpp-sim-performance.md`; optional schema/result docs under `docs/v5-lab/` | docs pre-commit/API hygiene; `mkdocs build`; evidence under `docs/gates/logs/20260514-wave003/cpp-sim-benchmark-contract/` |
+| worker-4 | verifier/integration | `docs/v5-lab/integration.md`; `docs/v5-lab/pr-queue.md`; gate/evidence review notes | verify lane scopes, gates, evidence paths, and no source-correlation implementation; evidence under `docs/gates/logs/20260514-wave003/integration-verifier/` |
 
 ## Stop Conditions
 
-Stop and ask the user if review shows a proposal requires semantic changes that
-conflict with the decision corpus, needs external legal approval, or cannot be
-safely sliced without touching shared code in Wave 002.
+Stop and ask the user if:
+
+- implementation requires changing documented semantics without a clear decision
+  update path;
+- source-correlation work becomes necessary to complete another lane;
+- workers need to import third-party RTL source;
+- unrelated user changes overlap the same files and merge strategy is ambiguous;
+- required toolchain credentials or external infrastructure block validation.
+
+## Wave 003 Completion Criteria
+
+- Each lane reaches terminal task status or has an explicitly acknowledged
+  failure path.
+- Implemented slices have bounded evidence under `docs/gates/logs/20260514-wave003/`.
+- Verifier confirms no source-correlation implementation occurred.
+- Conductor integrates only scoped commits, updates `integration.md` and
+  `pr-queue.md`, reruns appropriate final gates, then shuts down the team.
