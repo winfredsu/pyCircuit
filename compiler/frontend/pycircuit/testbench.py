@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any, Mapping
+from typing import Any
 
 from .probe import TbProbes
 from .tb import Tb
@@ -36,10 +37,12 @@ class TestbenchProgram:
             "top_header": self.top_header,
             "ports": {
                 "inputs": [
-                    {"name": n, "ty": t} for n, t in zip(self.in_raw, self.in_tys)
+                    {"name": n, "ty": t}
+                    for n, t in zip(self.in_raw, self.in_tys, strict=True)
                 ],
                 "outputs": [
-                    {"name": n, "ty": t} for n, t in zip(self.out_raw, self.out_tys)
+                    {"name": n, "ty": t}
+                    for n, t in zip(self.out_raw, self.out_tys, strict=True)
                 ],
             },
             "clocks": list(self.clocks),
