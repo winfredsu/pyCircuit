@@ -1,9 +1,12 @@
 $ uvx pre-commit run --files designs/examples/fifo_loopback/ready_valid_fifo.py tests/unit/test_ready_valid_fifo_example.py docs/gates/logs/20260514-wave003/ready-valid-fifo-example-tests/*
-check for merge conflicts................................................Passed
+check for merge conflicts................................................Failed
+- hook id: check-merge-conflict
+- files were modified by this hook
 check yaml...........................................(no files to check)Skipped
-fix end of files.........................................................Passed
-trim trailing whitespace.................................................Passed
-ruff.....................................................................Passed
-black....................................................................Passed
-markdownlint-cli2....................................(no files to check)Skipped
-pyCircuit API hygiene gate...............................................Passed
+fix end of files.........................................................Failed
+- hook id: end-of-file-fixer
+- files were modified by this hook
+trim trailing whitespace.................................................Failed
+- hook id: trailing-whitespace
+- files were modified by this hook
+ruff.....................................................................

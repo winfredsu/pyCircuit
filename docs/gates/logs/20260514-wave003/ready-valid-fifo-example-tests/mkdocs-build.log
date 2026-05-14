@@ -1,5 +1,4 @@
-$ mkdocs build
-mkdocs not found on PATH; trying uvx --from mkdocs-material --with mdx-gh-links mkdocs build
+$ uvx --from mkdocs-material --with mdx-gh-links mkdocs build
 warning: An executable named `mkdocs` is not provided by package `mkdocs-material` but is available via the dependency `mkdocs`. Consider using `uvx --from mkdocs mkdocs` instead.
 
 [31m │  ⚠  Warning from the Material for MkDocs team[0m
@@ -67,4 +66,4 @@ INFO    -  Doc file 'PyCircuit_V5_Spec.md' contains a link '#rtl-编译流程pyt
 INFO    -  Doc file 'PyCircuit_V5_Spec.md' contains a link '#编程范例', but there is no such anchor on this page.
 INFO    -  Doc file 'PyCircuit_V5_Spec.md' contains a link '#最佳实践', but there is no such anchor on this page.
 INFO    -  Doc file 'PyCircuit_V5_Spec.md' contains a link '#附录api-参考表', but there is no such anchor on this page.
-INFO    -  Documentation built in 1.01 seconds
+INFO    -  Documentation built in 0.90 seconds

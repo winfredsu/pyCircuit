@@ -1,7 +1,5 @@
 $ PYTHONPATH=compiler/frontend python designs/examples/fifo_loopback/ready_valid_fifo.py > ready_valid_fifo.mlir
 MLIR generated: docs/gates/logs/20260514-wave003/ready-valid-fifo-example-tests/ready_valid_fifo.mlir
-
-Selected generated names:
 2:func.func @ready_valid_fifo(%clk: !pyc.clock, %rst: !pyc.reset, %wvalid: i1, %wdata: i8, %rready: i1, %clear: i1) -> (i1, i1, i8, i2, i1, i1, i1, i1, i1, i1) attributes {arg_names = ["clk", "rst", "wvalid", "wdata", "rready", "clear"], result_names = ["wready", "rvalid", "rdata", "depth", "full", "empty", "write_fire", "read_fire", "overflow", "underflow"], pyc.base = "ready_valid_fifo", pyc.params = "{\"pass_through\":true}", pyc.kind = "module", pyc.inline = "false", pyc.value_params = [], pyc.value_param_types = [], pyc.struct.metrics = "{\"ast_node_count\":705,\"collection_count\":0,\"collection_instance_count\":0,\"estimated_inline_cost\":204,\"hardware_call_count\":15,\"instance_count\":0,\"loop_count\":0,\"module_call_count\":0,\"module_family_collection_count\":0,\"repeat_pressure\":0,\"repeated_body_clusters\":[],\"source_loc\":56,\"state_alloc_count\":24,\"state_call_count\":0}", pyc.struct.collections = "[]"} {
 3:  %v1 = pyc.wire {pyc.name = "rvfifo_data0__next"} : i8
 7:  %v5 = pyc.alias %v4 {pyc.name = "rvfifo_data0"} : i8
@@ -9,6 +7,4 @@ Selected generated names:
 12:  %v10 = pyc.alias %v9 {pyc.name = "rvfifo_data1"} : i8
 13:  %v11 = pyc.wire {pyc.name = "rvfifo_count__next"} : i2
 17:  %v15 = pyc.alias %v14 {pyc.name = "rvfifo_count"} : i2
-
-$ pycc availability for Verilog/C++ naming observation
 pycc not found on PATH; Verilog/C++ backend naming observation blocked in this worker environment.

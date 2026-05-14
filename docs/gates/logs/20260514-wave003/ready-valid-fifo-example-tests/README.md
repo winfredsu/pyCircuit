@@ -10,6 +10,31 @@ Date: 2026-05-14
 - Added focused unit coverage in `tests/unit/test_ready_valid_fifo_example.py` for reset/clear visibility, push/pop, simultaneous push/pop, optional empty pass-through, status outputs, overflow, and underflow.
 - Did not add a public FIFO helper API, compiler syntax, compiler internals, or copied OpenTitan RTL/assertions.
 
+
+## Affected files, contracts, and planned gates
+
+Affected files:
+
+- `designs/examples/fifo_loopback/ready_valid_fifo.py`
+- `tests/unit/test_ready_valid_fifo_example.py`
+- `docs/gates/logs/20260514-wave003/ready-valid-fifo-example-tests/`
+
+Contract/decision impact:
+
+- V5 examples/testbench behavior only: reset and clear visibility, ready/valid push/pop, simultaneous push/pop, optional empty pass-through, status outputs, overflow, and underflow.
+- Related to the proposal contract in `docs/v5-lab/proposals/ready-valid-fifo-helpers.md` and review split in `docs/v5-lab/iterations/002-review-ready-valid-fifo.md`.
+- No hardware semantic decision status changes, no compiler internals, no public FIFO helper API, no source-correlation-map, and no third-party RTL import.
+
+Planned gates before handoff:
+
+- source/license re-check for the OpenTitan study metadata while confirming independent authorship;
+- focused FIFO unit tests;
+- closest V5 unit subset;
+- changed-file type check and syntax check;
+- API hygiene and changed-file pre-commit;
+- generated MLIR naming observation;
+- `mkdocs build` because evidence docs changed.
+
 ## Source/license re-check
 
 See `source-license-recheck.log`.
