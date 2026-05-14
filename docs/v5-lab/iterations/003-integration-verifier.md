@@ -54,8 +54,17 @@ status remains pending until lane artifacts or commits are available for review.
 
 ## Final Integration Result
 
-Blocked pending corrected ready/valid FIFO lane reconciliation. Task 5 was
-created after task-2 was found to have a stale read-only lifecycle result, and
-it remains pending for `worker-2` at the latest verifier audit. Final pass/fail
-verification must be rerun after task 5 completes or the leader explicitly
-cancels that correction path.
+Final verifier status: **PASS with toolchain caveats**. Task 5 completed the
+corrected ready/valid FIFO lane, and the verifier reran final unit, compileall,
+API hygiene, docs, and pre-commit gates under
+`docs/gates/logs/20260514-wave003/integration-verifier/`.
+
+Residual caveats:
+
+- `pycc` is not available in this worker environment, so pycc-backed examples
+  and Verilog/C++ naming observations remain skipped or blocked in the lane
+  evidence.
+- Task-1/task-2 OMX lifecycle result text remains stale/read-only, but the
+  corrected task-5 result and worker-4 audit messages preserve the leader-owned
+  correction trail.
+- Public PR submission remains a user/leader approval step.

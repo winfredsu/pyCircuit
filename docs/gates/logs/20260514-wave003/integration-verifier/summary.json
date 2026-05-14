@@ -177,6 +177,24 @@
       "ended_at": "2026-05-14T05:31:14Z"
     },
     {
+      "gate": "precommit.final2",
+      "command": [
+        "uv",
+        "run",
+        "--extra",
+        "dev",
+        "--extra",
+        "docs",
+        "pre-commit",
+        "run",
+        "--files",
+        "docs/v5-lab/iterations/003-integration-verifier.md",
+        "docs/gates/logs/20260514-wave003/integration-verifier/final-audit.md",
+        "docs/gates/logs/20260514-wave003/integration-verifier/commands.txt"
+      ],
+      "exit_code": 0
+    },
+    {
       "gate": "precommit",
       "command": [
         "uv",
