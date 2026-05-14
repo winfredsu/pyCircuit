@@ -1,0 +1,70 @@
+
+[31m │  ⚠  Warning from the Material for MkDocs team[0m
+[31m │[0m
+[31m │[0m  MkDocs 2.0, the underlying framework of Material for MkDocs,
+[31m │[0m  will introduce backward-incompatible changes, including:
+[31m │[0m
+[31m │  × [0mAll plugins will stop working – the plugin system has been removed
+[31m │  × [0mAll theme overrides will break – the theming system has been rewritten
+[31m │  × [0mNo migration path exists – existing projects cannot be upgraded
+[31m │  × [0mClosed contribution model – community members can't report bugs
+[31m │  × [0mCurrently unlicensed – unsuitable for production use
+[31m │[0m
+[31m │[0m  Our full analysis:
+[31m │[0m
+[31m │[0m  [4mhttps://squidfunk.github.io/mkdocs-material/blog/2026/02/18/mkdocs-2.0/[0m
+[0m
+INFO    -  Cleaning site directory
+INFO    -  Building documentation to directory: /Users/sufang/projects/pyCircuit/.omx/team/pycircuit-v5-improvem-595e3ab2/worktrees/worker-4/_build/html
+INFO    -  The following pages exist in the docs directory, but are not included in the "nav" configuration:
+  - PyCircuit_V5_Spec.md
+  - cycle_balance_improvement.md
+  - cycle_balance_improvement_detailed_plan.md
+  - pycircuit_implementation_method.md
+  - simulation.md
+  - gates/logs/20260303-093808/matrix_summary.md
+  - gates/logs/20260514-wave003/integration-verifier/completion-audit.md
+  - gates/logs/20260514-wave003/ready-valid-fifo-example-tests/README.md
+  - v5-lab/backlog.md
+  - v5-lab/benchmarks.md
+  - v5-lab/claims.md
+  - v5-lab/integration.md
+  - v5-lab/pr-queue.md
+  - v5-lab/rtl-source-inventory.md
+  - v5-lab/iterations/001-cpp-sim-perf.md
+  - v5-lab/iterations/001-open-rtl-porting.md
+  - v5-lab/iterations/001-source-correlation.md
+  - v5-lab/iterations/001-testbench-ergonomics.md
+  - v5-lab/iterations/002-review-cpp-sim-performance.md
+  - v5-lab/iterations/002-review-cycleawaretb-ergonomics.md
+  - v5-lab/iterations/002-review-ready-valid-fifo.md
+  - v5-lab/iterations/002-review-source-correlation.md
+  - v5-lab/iterations/003-integration-verifier.md
+  - v5-lab/lanes/cpp-sim-perf.md
+  - v5-lab/lanes/review.md
+  - v5-lab/lanes/rtl-porting.md
+  - v5-lab/lanes/source-correlation.md
+  - v5-lab/lanes/testbench-ergonomics.md
+  - v5-lab/proposals/cpp-sim-performance.md
+  - v5-lab/proposals/cycleawaretb-ergonomics.md
+  - v5-lab/proposals/ready-valid-fifo-helpers.md
+  - v5-lab/proposals/source-correlation.md
+  - v5-lab/results/README.md
+WARNING -  A reference to 'PyCircuit V5 Programming Tutorial.md' is included in the 'nav' configuration, which is not found in the documentation files.
+INFO    -  Doc file 'PyCircuit_V5_Spec.md' contains a link '#概述', but there is no such anchor on this page.
+INFO    -  Doc file 'PyCircuit_V5_Spec.md' contains a link '#信号类型纪律non-negotiable', but there is no such anchor on this page.
+INFO    -  Doc file 'PyCircuit_V5_Spec.md' contains a link '#核心组件', but there is no such anchor on this page.
+INFO    -  Doc file 'PyCircuit_V5_Spec.md' contains a link '#全局函数', but there is no such anchor on this page.
+INFO    -  Doc file 'PyCircuit_V5_Spec.md' contains a link '#周期管理', but there is no such anchor on this page.
+INFO    -  Doc file 'PyCircuit_V5_Spec.md' contains a link '#自动周期平衡', but there is no such anchor on this page.
+INFO    -  Doc file 'PyCircuit_V5_Spec.md' contains a link '#编程风格', but there is no such anchor on this page.
+INFO    -  Doc file 'PyCircuit_V5_Spec.md' contains a link '#模块签名规范', but there is no such anchor on this page.
+INFO    -  Doc file 'PyCircuit_V5_Spec.md' contains a link '#子模块调用规范六步法', but there is no such anchor on this page.
+INFO    -  Doc file 'PyCircuit_V5_Spec.md' contains a link '#层次化-mlir-发射', but there is no such anchor on this page.
+INFO    -  Doc file 'PyCircuit_V5_Spec.md' contains a link '#仿真与测试cycleawaretb', but there is no such anchor on this page.
+INFO    -  Doc file 'PyCircuit_V5_Spec.md' contains a link '#编译入口-compile_cycle_aware', but there is no such anchor on this page.
+INFO    -  Doc file 'PyCircuit_V5_Spec.md' contains a link '#rtl-编译流程python--mlir--verilog', but there is no such anchor on this page.
+INFO    -  Doc file 'PyCircuit_V5_Spec.md' contains a link '#编程范例', but there is no such anchor on this page.
+INFO    -  Doc file 'PyCircuit_V5_Spec.md' contains a link '#最佳实践', but there is no such anchor on this page.
+INFO    -  Doc file 'PyCircuit_V5_Spec.md' contains a link '#附录api-参考表', but there is no such anchor on this page.
+INFO    -  Documentation built in 0.95 seconds

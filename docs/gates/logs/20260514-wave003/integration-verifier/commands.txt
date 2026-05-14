@@ -7,3 +7,7 @@ uv run --extra dev --extra docs pre-commit run --files docs/v5-lab/iterations/00
 uv run --extra docs mkdocs build
 uv run --extra dev python3 flows/tools/check_api_hygiene.py compiler/frontend/pycircuit designs/examples docs README.md
 uv run --extra dev python3 -m compileall -q compiler/frontend/pycircuit
+# Completion-audit refresh while task 5 remains pending
+uv run --extra dev --extra docs pre-commit run --files docs/v5-lab/iterations/003-integration-verifier.md docs/gates/logs/20260514-wave003/integration-verifier/completion-audit.md docs/gates/logs/20260514-wave003/integration-verifier/commands.txt
+uv run --extra docs mkdocs build
+uv run --extra dev python3 flows/tools/check_api_hygiene.py compiler/frontend/pycircuit designs/examples docs README.md

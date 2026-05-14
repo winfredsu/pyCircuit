@@ -54,4 +54,8 @@ status remains pending until lane artifacts or commits are available for review.
 
 ## Final Integration Result
 
-Pending lane completion.
+Blocked pending corrected ready/valid FIFO lane reconciliation. Task 5 was
+created after task-2 was found to have a stale read-only lifecycle result, and
+it remains pending for `worker-2` at the latest verifier audit. Final pass/fail
+verification must be rerun after task 5 completes or the leader explicitly
+cancels that correction path.

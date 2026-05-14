@@ -1,7 +1,26 @@
 {
   "run_id": "20260514-wave003",
   "lane": "integration-verifier",
+  "audit_status": "BLOCKED_PENDING_TASK_5",
   "gates": [
+    {
+      "gate": "api_hygiene.audit",
+      "command": [
+        "uv",
+        "run",
+        "--extra",
+        "dev",
+        "python3",
+        "flows/tools/check_api_hygiene.py",
+        "compiler/frontend/pycircuit",
+        "designs/examples",
+        "docs",
+        "README.md"
+      ],
+      "exit_code": 0,
+      "started_at": "2026-05-14T05:25:21Z",
+      "ended_at": "2026-05-14T05:25:21Z"
+    },
     {
       "gate": "api_hygiene",
       "command": [
@@ -38,6 +57,20 @@
       "ended_at": "2026-05-14T05:18:36Z"
     },
     {
+      "gate": "mkdocs.audit",
+      "command": [
+        "uv",
+        "run",
+        "--extra",
+        "docs",
+        "mkdocs",
+        "build"
+      ],
+      "exit_code": 0,
+      "started_at": "2026-05-14T05:25:20Z",
+      "ended_at": "2026-05-14T05:25:21Z"
+    },
+    {
       "gate": "mkdocs",
       "command": [
         "uv",
@@ -50,6 +83,26 @@
       "exit_code": 0,
       "started_at": "2026-05-14T05:18:31Z",
       "ended_at": "2026-05-14T05:18:35Z"
+    },
+    {
+      "gate": "precommit.audit",
+      "command": [
+        "uv",
+        "run",
+        "--extra",
+        "dev",
+        "--extra",
+        "docs",
+        "pre-commit",
+        "run",
+        "--files",
+        "docs/v5-lab/iterations/003-integration-verifier.md",
+        "docs/gates/logs/20260514-wave003/integration-verifier/completion-audit.md",
+        "docs/gates/logs/20260514-wave003/integration-verifier/commands.txt"
+      ],
+      "exit_code": 0,
+      "started_at": "2026-05-14T05:25:19Z",
+      "ended_at": "2026-05-14T05:25:20Z"
     },
     {
       "gate": "precommit",
