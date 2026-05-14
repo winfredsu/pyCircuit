@@ -1,3 +1,4 @@
-pre-commit run --files docs/v5-lab/proposals/cpp-sim-performance.md docs/v5-lab/benchmarks.md
+pre-commit run --files docs/v5-lab/benchmarks.md docs/v5-lab/proposals/cpp-sim-performance.md docs/v5-lab/results/README.md
+mkdocs build
 python3 flows/tools/check_api_hygiene.py compiler/frontend/pycircuit designs/examples docs README.md
-UV_OFFLINE=1 uvx --from mkdocs-material --with mdx-gh-links mkdocs build
+pytest tests/unit -m unit
