@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 import pytest
-
 from pycircuit import CycleAwareTb, Tb
-from pycircuit.cli import _TopIface, _render_tb_cpp, _render_tb_sv
+from pycircuit.cli import _render_tb_cpp, _render_tb_sv, _TopIface
 
 pytestmark = pytest.mark.unit
 
