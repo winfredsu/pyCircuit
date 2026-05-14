@@ -1,31 +1,9 @@
-$ uvx pre-commit run --files designs/examples/fifo_loopback/ready_valid_fifo.py tests/unit/test_ready_valid_fifo_example.py docs/gates/logs/20260514-wave003/ready-valid-fifo-example-tests/{README.md,*.log except precommit,ready_valid_fifo.mlir}
-check for merge conflicts................................................Failed
-- hook id: check-merge-conflict
-- files were modified by this hook
+$ uvx pre-commit run --files designs/examples/fifo_loopback/ready_valid_fifo.py tests/unit/test_ready_valid_fifo_example.py docs/gates/logs/20260514-wave003/ready-valid-fifo-example-tests/{README.md,api-hygiene.log,compileall.log,examples-subset.log,focused-pytest.log,generated-artifacts.log,mkdocs-build.log,source-license-recheck.log,type-check.log,unit-subset.log,ready_valid_fifo.mlir}
+check for merge conflicts................................................Passed
 check yaml...........................................(no files to check)Skipped
-fix end of files.........................................................Failed
-- hook id: end-of-file-fixer
-- files were modified by this hook
-trim trailing whitespace.................................................Failed
-- hook id: trailing-whitespace
-- files were modified by this hook
-ruff.....................................................................Failed
-- hook id: ruff
-- files were modified by this hook
-
-All checks passed!
-
-black....................................................................Failed
-- hook id: black
-- files were modified by this hook
-
-All done! ✨ 🍰 ✨
-2 files left unchanged.
-
+fix end of files.........................................................Passed
+trim trailing whitespace.................................................Passed
+ruff.....................................................................Passed
+black....................................................................Passed
 markdownlint-cli2....................................(no files to check)Skipped
-pyCircuit API hygiene gate...............................................Failed
-- hook id: pyc-api-hygiene
-- files were modified by this hook
-
-ok: API hygiene check passed
-
+pyCircuit API hygiene gate...............................................Passed
