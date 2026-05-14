@@ -1,0 +1,8 @@
+# Wave 003 integration verifier commands
+sed -n '1,260p' docs/v5-lab/pr-queue.md
+sed -n '1,240p' docs/development/testing-and-gates.md
+sed -n '1,260p' docs/v5-lab/claims.md
+for f in $OMX_TEAM_STATE_ROOT/team/pycircuit-v5-improvem-595e3ab2/tasks/task-*.json; do echo "---$(basename "$f")"; cat "$f"; done
+pre-commit run --files docs/v5-lab/iterations/003-integration-verifier.md docs/gates/logs/20260514-wave003/integration-verifier/commands.txt
+mkdocs build
+python3 flows/tools/check_api_hygiene.py compiler/frontend/pycircuit designs/examples docs README.md

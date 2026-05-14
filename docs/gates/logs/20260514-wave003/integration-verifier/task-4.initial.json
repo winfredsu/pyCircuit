@@ -1,0 +1,32 @@
+{
+  "subject": "Verify and integrate Wave 003 lanes",
+  "description": "Wave 003 verifier/integration lane.\n\nRead:\n- AGENTS.md / docs/development/testing-and-gates.md / docs/development/review-and-merge.md\n- docs/v5-lab/pr-queue.md\n- docs/v5-lab/claims.md\n- lane artifacts/commits as they appear\n\nOwned files:\n- docs/v5-lab/iterations/003-integration-verifier.md\n- docs/v5-lab/integration.md and docs/v5-lab/pr-queue.md only if you are applying final status notes after reviewing lane outputs\n- docs/gates/logs/20260514-wave003/integration-verifier/\n\nVerify:\n- no source-correlation-map implementation in Wave 003;\n- each lane stayed in its file ownership;\n- affected contracts/decision IDs are recorded;\n- gates/evidence paths exist and match docs/development/testing-and-gates.md;\n- no third-party RTL source was imported;\n- no backend-only semantic fixes.\n\nYou may start by writing a verification checklist, then update after lane results are integrated. Do not block implementation lanes unless you find a hard rule violation. Commit changes before marking complete. Final mailbox/task result must end with: Changed files / Decision or contract impact / Gates run / Evidence path / Risks / Next handoff.",
+  "status": "in_progress",
+  "owner": "worker-4",
+  "depends_on": [],
+  "role": "execution",
+  "delegation": {
+    "mode": "auto",
+    "max_parallel_subtasks": 3,
+    "required_parallel_probe": true,
+    "spawn_before_serial_search_threshold": 3,
+    "child_model_policy": "standard",
+    "child_model": "gpt-5.4-mini",
+    "subtask_candidates": [
+      "Repository map probe: find relevant files, symbols, and ownership boundaries.",
+      "Review probe: inspect risks, edge cases, and contract violations.",
+      "Test probe: identify existing coverage and missing regression checks."
+    ],
+    "child_report_format": "bullets",
+    "skip_allowed_reason_required": true
+  },
+  "id": "4",
+  "version": 3,
+  "created_at": "2026-05-14T05:13:16.300Z",
+  "claim": {
+    "owner": "worker-4",
+    "token": "b0534b43-3220-40da-80e2-ee1f8a2cdd4d",
+    "leased_until": "2026-05-14T05:29:13.245Z"
+  },
+  "requires_code_change": false
+}
