@@ -1,0 +1,1 @@
+{"gate":"compileall","command":["uv", "run", "--extra", "dev", "python3", "-m", "compileall", "-q", "compiler/frontend/pycircuit"],"exit_code":0,"started_at":"2026-05-14T05:18:36Z","ended_at":"2026-05-14T05:18:36Z"}
