@@ -1474,7 +1474,7 @@ class CycleAwareTb:
         if not isinstance(t, _Tb):
             raise TypeError(
                 f"CycleAwareTb requires a Tb instance, got {type(t).__name__}"
-        )
+            )
         self._t = t
         self._cycle = 0
         self._label_stack: list[tuple[tuple[str, str], ...]] = []

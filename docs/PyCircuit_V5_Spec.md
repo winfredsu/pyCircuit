@@ -1049,11 +1049,17 @@ from pycircuit import CycleAwareTb, Tb, testbench
 | `tb.next()` | 推进到下一个时钟周期 |
 | `tb.cycle` | 属性：当前周期索引 |
 | `tb.drive(port, value)` | 在当前周期驱动端口 |
-| `tb.expect(port, value, *, phase="post", msg=None)` | 在当前周期检查端口值 |
+| `tb.expect(port, value, *, phase="post", msg=None, labels=None)` | 在当前周期检查端口值，可附加诊断标签 |
+| `with tb.context(**labels)` | 为块内 `expect` 附加诊断标签 |
 | `tb.finish(*, at=None)` | 在当前周期（或指定周期）结束仿真 |
 | `tb.print(fmt, *, ports=())` | 在当前周期打印 |
 | `tb.sva_assert(expr, **kw)` | SVA 断言（透传） |
 | `tb.random(port, **kw)` | 随机激励（透传） |
+
+`CycleAwareTb.expect` 的 `labels` 和 `tb.context(...)` 只影响失败诊断。
+生成的 C++/SystemVerilog 测试台会保留显式 `msg=`，并报告稳定字段：
+`port`、`cycle`、`phase`、`labels`、actual value 和 expected value。该诊断
+元数据不改变仿真时序、观察点或期望值。
 
 ### 完整示例
 

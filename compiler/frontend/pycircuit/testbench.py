@@ -35,8 +35,12 @@ class TestbenchProgram:
             "top_symbol": self.top_symbol,
             "top_header": self.top_header,
             "ports": {
-                "inputs": [{"name": n, "ty": t} for n, t in zip(self.in_raw, self.in_tys)],
-                "outputs": [{"name": n, "ty": t} for n, t in zip(self.out_raw, self.out_tys)],
+                "inputs": [
+                    {"name": n, "ty": t} for n, t in zip(self.in_raw, self.in_tys)
+                ],
+                "outputs": [
+                    {"name": n, "ty": t} for n, t in zip(self.out_raw, self.out_tys)
+                ],
             },
             "clocks": list(self.clocks),
             "reset": self.reset,
@@ -45,13 +49,17 @@ class TestbenchProgram:
             "prints": list(self.prints),
             "random_streams": list(self.random_streams),
             "timeout_cycles": int(self.timeout_cycles),
-            "finish_cycle": (None if self.finish_cycle is None else int(self.finish_cycle)),
+            "finish_cycle": (
+                None if self.finish_cycle is None else int(self.finish_cycle)
+            ),
             "sva_asserts": list(self.sva_asserts),
             "probes": list(self.probes),
         }
 
     def as_json(self) -> str:
-        return json.dumps(self.as_dict(), sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+        return json.dumps(
+            self.as_dict(), sort_keys=True, separators=(",", ":"), ensure_ascii=False
+        )
 
 
 def testbench_payload_from_tb(
@@ -102,7 +110,10 @@ def testbench_payload_from_tb(
                 "cycles_deasserted": int(tb.reset_spec.cycles_deasserted),
             }
         ),
-        drives=tuple({"port": str(d.port), "value": int(d.value), "at": int(d.at)} for d in tb.drives),
+        drives=tuple(
+            {"port": str(d.port), "value": int(d.value), "at": int(d.at)}
+            for d in tb.drives
+        ),
         expects=tuple(
             {
                 "port": str(e.port),
@@ -125,7 +136,12 @@ def testbench_payload_from_tb(
             for p in tb.prints
         ),
         random_streams=tuple(
-            {"port": str(r.port), "seed": int(r.seed), "start": int(r.start), "every": int(r.every)}
+            {
+                "port": str(r.port),
+                "seed": int(r.seed),
+                "start": int(r.start),
+                "every": int(r.every),
+            }
             for r in tb.random_streams
         ),
         timeout_cycles=int(tb.timeout_cycles),
@@ -150,12 +166,14 @@ def emit_testbench_pyc(
     tb_name: str,
     frontend_contract: str,
 ) -> str:
-    payload_json = json.dumps(dict(payload), sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    payload_json = json.dumps(
+        dict(payload), sort_keys=True, separators=(",", ":"), ensure_ascii=False
+    )
     name_esc = json.dumps(str(tb_name), ensure_ascii=False)
     payload_esc = json.dumps(payload_json, ensure_ascii=False)
     # Intentionally no func bodies for testbench payload files.
     return (
-        f"module attributes {{pyc.top = @{tb_name}, pyc.frontend.contract = \"{frontend_contract}\", "
+        f'module attributes {{pyc.top = @{tb_name}, pyc.frontend.contract = "{frontend_contract}", '
         f"pyc.tb.name = {name_esc}, pyc.tb.payload = {payload_esc}}} {{\n"
         "}\n"
     )

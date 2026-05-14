@@ -56,41 +56,41 @@ class SvaExpr:
     def __str__(self) -> str:
         return self.text
 
-    def _bin(self, op: str, other: Any) -> "SvaExpr":
+    def _bin(self, op: str, other: Any) -> SvaExpr:
         o = _as_sva_expr(other)
         return SvaExpr(f"({self}) {op} ({o})")
 
-    def __and__(self, other: Any) -> "SvaExpr":
+    def __and__(self, other: Any) -> SvaExpr:
         return self._bin("&&", other)
 
-    def __or__(self, other: Any) -> "SvaExpr":
+    def __or__(self, other: Any) -> SvaExpr:
         return self._bin("||", other)
 
-    def __add__(self, other: Any) -> "SvaExpr":
+    def __add__(self, other: Any) -> SvaExpr:
         return self._bin("+", other)
 
-    def __sub__(self, other: Any) -> "SvaExpr":
+    def __sub__(self, other: Any) -> SvaExpr:
         return self._bin("-", other)
 
-    def __invert__(self) -> "SvaExpr":
+    def __invert__(self) -> SvaExpr:
         return SvaExpr(f"!({self})")
 
-    def __eq__(self, other: Any) -> "SvaExpr":  # type: ignore[override]
+    def __eq__(self, other: Any) -> SvaExpr:  # type: ignore[override]
         return self._bin("==", other)
 
-    def __ne__(self, other: Any) -> "SvaExpr":  # type: ignore[override]
+    def __ne__(self, other: Any) -> SvaExpr:  # type: ignore[override]
         return self._bin("!=", other)
 
-    def __lt__(self, other: Any) -> "SvaExpr":
+    def __lt__(self, other: Any) -> SvaExpr:
         return self._bin("<", other)
 
-    def __le__(self, other: Any) -> "SvaExpr":
+    def __le__(self, other: Any) -> SvaExpr:
         return self._bin("<=", other)
 
-    def __gt__(self, other: Any) -> "SvaExpr":
+    def __gt__(self, other: Any) -> SvaExpr:
         return self._bin(">", other)
 
-    def __ge__(self, other: Any) -> "SvaExpr":
+    def __ge__(self, other: Any) -> SvaExpr:
         return self._bin(">=", other)
 
 
@@ -106,7 +106,7 @@ def _as_sva_expr(v: Any) -> SvaExpr:
     raise TbError(f"unsupported SVA value: {type(v).__name__}")
 
 
-class sva:
+class sva:  # noqa: N801
     @staticmethod
     def id(name: str) -> SvaExpr:
         return _as_sva_expr(name)
@@ -211,16 +211,32 @@ class Tb:
     timeout_cycles: int = 1000
     finish_cycle: int | None = None
 
-    def clock(self, port: str, *, half_period_steps: int = 1, phase_steps: int = 0, start_high: bool = False) -> None:
+    def clock(
+        self,
+        port: str,
+        *,
+        half_period_steps: int = 1,
+        phase_steps: int = 0,
+        start_high: bool = False,
+    ) -> None:
         p = str(port).strip()
         if not p:
             raise TbError("clock port must be non-empty")
         hp = int(half_period_steps)
         if hp <= 0:
             raise TbError("half_period_steps must be > 0")
-        self.clocks.append(ClockSpec(port=p, half_period_steps=hp, phase_steps=int(phase_steps), start_high=bool(start_high)))
+        self.clocks.append(
+            ClockSpec(
+                port=p,
+                half_period_steps=hp,
+                phase_steps=int(phase_steps),
+                start_high=bool(start_high),
+            )
+        )
 
-    def reset(self, port: str, *, cycles_asserted: int = 2, cycles_deasserted: int = 1) -> None:
+    def reset(
+        self, port: str, *, cycles_asserted: int = 2, cycles_deasserted: int = 1
+    ) -> None:
         p = str(port).strip()
         if not p:
             raise TbError("reset port must be non-empty")
@@ -237,7 +253,7 @@ class Tb:
         cyc = int(at)
         if cyc < 0:
             raise TbError("drive cycle must be >= 0")
-        if not isinstance(value, (bool, int)):
+        if not isinstance(value, bool | int):
             raise TbError("drive value must be bool or int")
         self.drives.append(Drive(port=p, value=value, at=cyc))
 
@@ -257,7 +273,7 @@ class Tb:
         cyc = int(at)
         if cyc < 0:
             raise TbError("expect cycle must be >= 0")
-        if not isinstance(value, (bool, int)):
+        if not isinstance(value, bool | int):
             raise TbError("expect value must be bool or int")
         ph = str(phase).strip().lower()
         if ph not in {"pre", "post"}:
@@ -304,9 +320,19 @@ class Tb:
         nm = None if name is None else _sanitize_id(str(name))
         if nm == "":
             nm = None
-        self.sva_asserts.append(SvaAssert(expr=e, clock=clk, reset=rst, name=nm, msg=(None if msg is None else str(msg))))
+        self.sva_asserts.append(
+            SvaAssert(
+                expr=e,
+                clock=clk,
+                reset=rst,
+                name=nm,
+                msg=(None if msg is None else str(msg)),
+            )
+        )
 
-    def random(self, port: str, *, seed: int = 1, start: int = 0, every: int = 1) -> None:
+    def random(
+        self, port: str, *, seed: int = 1, start: int = 0, every: int = 1
+    ) -> None:
         """Drive an input port with a deterministic pseudo-random stream.
 
         Notes:
@@ -324,7 +350,9 @@ class Tb:
         ev = int(every)
         if ev <= 0:
             raise TbError("random every must be > 0")
-        self.random_streams.append(RandomStream(port=p, seed=int(seed), start=st, every=ev))
+        self.random_streams.append(
+            RandomStream(port=p, seed=int(seed), start=st, every=ev)
+        )
 
     def print(self, fmt: str, *, at: int, ports: Iterable[str] = ()) -> None:
         s = str(fmt)
@@ -338,7 +366,9 @@ class Tb:
             raise TbError("print ports must be non-empty names")
         self.prints.append(PrintAction(fmt=s, ports=ps, at=cyc))
 
-    def print_every(self, fmt: str, *, start: int = 0, every: int = 1, ports: Iterable[str] = ()) -> None:
+    def print_every(
+        self, fmt: str, *, start: int = 0, every: int = 1, ports: Iterable[str] = ()
+    ) -> None:
         s = str(fmt)
         if not s.strip():
             raise TbError("print_every fmt must be non-empty")

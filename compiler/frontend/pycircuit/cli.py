@@ -568,10 +568,12 @@ def _render_tb_cpp(
     # Group actions by cycle for compact emission.
     drives_by: dict[int, list[tuple[str, int | bool, str]]] = {}
     expects_pre_by: dict[
-        int, list[tuple[str, str, int | bool, str | None, tuple[tuple[str, str], ...], str]]
+        int,
+        list[tuple[str, str, int | bool, str | None, tuple[tuple[str, str], ...], str]],
     ] = {}
     expects_post_by: dict[
-        int, list[tuple[str, str, int | bool, str | None, tuple[tuple[str, str], ...], str]]
+        int,
+        list[tuple[str, str, int | bool, str | None, tuple[tuple[str, str], ...], str]],
     ] = {}
     prints_at: dict[int, list[tuple[str, list[tuple[str, str, int]]]]] = {}
     prints_every: list[tuple[str, int, int, list[tuple[str, str, int]]]] = []
@@ -887,19 +889,19 @@ def _render_tb_cpp(
                 if w == 1:
                     prefix = json.dumps(f"ERROR(pre): {m} actual=")
                     lines.append(
-                        f"      if (dut.{sn}.value() != {vv}u) {{ std::cerr << {prefix} << dut.{sn}.value() << \" expected={vv}\\n\"; return 1; }}\n"
+                        f'      if (dut.{sn}.value() != {vv}u) {{ std::cerr << {prefix} << dut.{sn}.value() << " expected={vv}\\n"; return 1; }}\n'
                     )
                 elif w <= 64:
                     prefix = json.dumps(f"ERROR(pre): {m} actual=0x")
                     lines.append(
-                        f"      if (dut.{sn}.value() != {vv}u) {{ std::cerr << {prefix} << std::hex << dut.{sn}.value() << \" expected=0x{vv:x}\" << std::dec << \"\\n\"; return 1; }}\n"
+                        f'      if (dut.{sn}.value() != {vv}u) {{ std::cerr << {prefix} << std::hex << dut.{sn}.value() << " expected=0x{vv:x}" << std::dec << "\\n"; return 1; }}\n'
                     )
                 else:
                     prefix = json.dumps(
                         f"ERROR(pre): {m} actual=<wide> expected=<wide>"
                     )
                     lines.append(
-                        f"      if (!(dut.{sn} == {exp})) {{ std::cerr << {prefix} << \"\\n\"; return 1; }}\n"
+                        f'      if (!(dut.{sn} == {exp})) {{ std::cerr << {prefix} << "\\n"; return 1; }}\n'
                     )
             lines.append("      break; }\n")
         lines.append("    default: break;\n")
@@ -946,17 +948,17 @@ def _render_tb_cpp(
                 if w == 1:
                     prefix = json.dumps(f"ERROR: {m} actual=")
                     lines.append(
-                        f"      if (dut.{sn}.value() != {vv}u) {{ std::cerr << {prefix} << dut.{sn}.value() << \" expected={vv}\\n\"; return 1; }}\n"
+                        f'      if (dut.{sn}.value() != {vv}u) {{ std::cerr << {prefix} << dut.{sn}.value() << " expected={vv}\\n"; return 1; }}\n'
                     )
                 elif w <= 64:
                     prefix = json.dumps(f"ERROR: {m} actual=0x")
                     lines.append(
-                        f"      if (dut.{sn}.value() != {vv}u) {{ std::cerr << {prefix} << std::hex << dut.{sn}.value() << \" expected=0x{vv:x}\" << std::dec << \"\\n\"; return 1; }}\n"
+                        f'      if (dut.{sn}.value() != {vv}u) {{ std::cerr << {prefix} << std::hex << dut.{sn}.value() << " expected=0x{vv:x}" << std::dec << "\\n"; return 1; }}\n'
                     )
                 else:
                     prefix = json.dumps(f"ERROR: {m} actual=<wide> expected=<wide>")
                     lines.append(
-                        f"      if (!(dut.{sn} == {exp})) {{ std::cerr << {prefix} << \"\\n\"; return 1; }}\n"
+                        f'      if (!(dut.{sn} == {exp})) {{ std::cerr << {prefix} << "\\n"; return 1; }}\n'
                     )
             lines.append("      break; }\n")
         lines.append("    default: break;\n")
@@ -1046,10 +1048,12 @@ def _render_tb_sv(
 
     drives_by: dict[int, list[tuple[str, int | bool, str]]] = {}
     expects_pre_by: dict[
-        int, list[tuple[str, str, int | bool, str | None, tuple[tuple[str, str], ...], str]]
+        int,
+        list[tuple[str, str, int | bool, str | None, tuple[tuple[str, str], ...], str]],
     ] = {}
     expects_post_by: dict[
-        int, list[tuple[str, str, int | bool, str | None, tuple[tuple[str, str], ...], str]]
+        int,
+        list[tuple[str, str, int | bool, str | None, tuple[tuple[str, str], ...], str]],
     ] = {}
     prints_at: dict[int, list[tuple[str, list[str]]]] = {}
     prints_every: list[tuple[str, int, int, list[str]]] = []
@@ -1624,7 +1628,7 @@ def _base_name_of(fn: Any) -> str:
 
 
 def _module_params_from_manifest(
-    manifest: Mapping[str, Any]
+    manifest: Mapping[str, Any],
 ) -> dict[str, dict[str, Any]]:
     out: dict[str, dict[str, Any]] = {}
     modules = manifest.get("modules", [])
