@@ -224,3 +224,4 @@ func.func @ready_valid_fifo(%clk: !pyc.clock, %rst: !pyc.reset, %wvalid: i1, %wd
 }
 
 }
+
